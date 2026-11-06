@@ -6,11 +6,11 @@ Free and open source under the [SIL Open Font License 1.1](../release/OFL.txt): 
 
 ![Lowie demos](../release/images/demos-sheet.png)
 
-**[Download Lowie 0.1](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
+**[Download Lowie 0.2](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
 
 ## Styles
 
-- **Poke**: rows of dots packed solid.
+- **Poke**: loose, scattered dots with a ragged edge, like skin work.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 
@@ -39,7 +39,7 @@ Capitals join into the lowercase letter after them, never to each other.
 ## Good to know
 
 - Lowie is a display font. The dots read as dots from about 150px; at 30 to 150px they give a chalky, stippled texture; below 30px they merge into grey.
-- Files are large (about 1 MB per style as WOFF2), because every dot is its own shape. Fine for headings and print, heavy for body text on a website.
+- Files are large (0.5 to 1.1 MB per style as WOFF2), because every dot is its own shape. Fine for headings and print, heavy for body text on a website.
 
 ## Characters
 

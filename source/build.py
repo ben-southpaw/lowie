@@ -74,8 +74,21 @@ VARIANTS = {
     "Powder Rail": dict(join="powder-rail", rail=48, grain=9, density=1.5),
     "Poke Low": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90), high_exits="",
                      st=104, stc=112, thin=50, sf=40, so=44),
-    "Poke": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
-                 st=104, stc=112, thin=50, sf=40, so=44),
+    # Release Poke from 0.2: organic dots, no traced edge (Ben picked Poke Soft, 2026-11-06)
+    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
+                 st=112, stc=120, thin=60, sf=48, so=48),
+    # The 0.1 Poke: rows that follow the contour
+    "Poke Classic": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
+                         st=104, stc=112, thin=50, sf=40, so=44),
+    # Fewer, bigger dots, so the dots still read at 50 to 100px (Ben, 2026-11-06)
+    "Poke Big": dict(dots="poke", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
+                     st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Soft": dict(dots="organic", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
+                      st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Soft Fine": dict(dots="organic", dot=19, gap=35, jitter=0.3, joinw=("wedge", 44, 92),
+                           st=108, stc=116, thin=56, sf=44, so=46),
+    "Poke Bigger": dict(dots="poke", dot=32, gap=60, jitter=0.3, joinw=("wedge", 60, 104),
+                        st=124, stc=132, thin=70, sf=56, so=52),
     "Poke Shaded": dict(dots="shade", dot=13, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
                         st=104, stc=112, thin=50, sf=40, so=44),
     "Poke Line": dict(dots="line", dot=11, gap=22, jitter=0.3, joinw=("wedge", 40, 90),
@@ -252,6 +265,9 @@ def dotify(path):
     if P["dots"] in ("poke", "shade", "line"):
         poke_rows(fp, inside, free, add)
         return dots_to_path(dots)
+    if P["dots"] == "organic":
+        organic(fp, inside, free, add)
+        return dots_to_path(dots)
 
     # 1. a row of dots tracing every edge, set just inside the line
     for c in fp.contours:
@@ -299,6 +315,51 @@ def dots_to_path(dots):
         emit(pen, grain(x, y, r, RNG.uniform(0, math.pi), RNG.uniform(1.0, 1.0 + jit * 0.6)), True)
     out.simplify(fix_winding=True, keep_starting_points=False, clockwise=True)
     return out
+
+
+def organic(fp, inside, free, add):
+    """Hand-poke without a traced outline: one loose edge row that drifts in and
+    out with gaps, then random packing inside (no rows), so the letter ends where
+    the dots stop rather than at a drawn line."""
+    r0, gap, jit = P["dot"], P["gap"], P["jitter"]
+
+    def size():
+        r = r0 * RNG.uniform(0.72, 1.15)
+        return r * 1.4 if RNG.random() < 0.04 else r       # a few blowouts
+
+    # 1. loose edge: irregular spacing, wandering inset, ~20% missing
+    for c in fp.contours:
+        pts = c + [c[0]]
+        carry, wob = 0.0, 0.0
+        for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
+            seg = math.hypot(x1 - x0, y1 - y0)
+            if seg == 0:
+                continue
+            ux, uy = (x1 - x0) / seg, (y1 - y0) / seg
+            d = carry
+            while d < seg:
+                wob = wob * 0.7 + RNG.gauss(0, r0 * 0.35)
+                x, y = x0 + ux * d, y0 + uy * d
+                for nx, ny in ((-uy, ux), (uy, -ux)):
+                    if not inside(x + nx * 2, y + ny * 2):
+                        continue
+                    inset = r0 * RNG.uniform(0.7, 1.6) + wob
+                    cx, cy = x + nx * inset, y + ny * inset
+                    if RNG.random() < 0.8 and inside(cx, cy) and free(cx, cy, gap * 0.82):
+                        add(cx, cy, size())
+                    break
+                d += gap * RNG.uniform(0.85, 1.35)
+            carry = d - seg
+
+    # 2. random packing inside (dart throwing gives an even but rowless spread)
+    xs = [x for c in fp.contours for x, _ in c]
+    ys = [y for c in fp.contours for _, y in c]
+    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
+    tries = int((x1 - x0) * (y1 - y0) / (gap * gap) * 30)
+    for _ in range(tries):
+        x, y = RNG.uniform(x0, x1), RNG.uniform(y0, y1)
+        if inside(x, y) and free(x, y, gap * RNG.uniform(0.8, 0.95)):
+            add(x, y, size())
 
 
 def poke_rows(fp, inside, free, add):
@@ -1715,7 +1776,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.1"
+VERSION = "0.2"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "
@@ -1830,6 +1891,7 @@ if __name__ == "__main__":
             fam, p = build(name, release=True)
             print(fam, p.stat().st_size, "bytes")
         sys.exit()
-    for name in VARIANTS:
+    names = [a.replace("_", " ") for a in sys.argv[1:]] or list(VARIANTS)   # e.g. build.py Poke Poke_Big
+    for name in names:
         fam, p = build(name)
         print(fam, p.stat().st_size, "bytes")

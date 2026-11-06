@@ -15,7 +15,7 @@ default in most apps). b, o, r, v and w hand over along the top, as in
 handwriting; the rest join from the foot.
 
 Three styles:
-- Poke: rows of dots packed solid, a beaded letter.
+- Poke: loose, scattered dots with a ragged edge, as in hand-poke work.
 - Poke Shaded: a dense edge with lighter dot shading inside.
 - Poke Line: the outline only, as line work.
 
@@ -34,6 +34,11 @@ and skia-pathops.
 
 Changelog
 ---------
+
+0.2 (2026-11-06)
+- Poke redrawn: bigger dots scattered at random, with a loose edge row
+  instead of a traced outline. Reads as dots from smaller sizes and the
+  file is half the size. The 0.1 look stays in the source as Poke Classic.
 
 0.1 (2026-11-06)
 - First release candidate: Poke, Poke Shaded and Poke Line.
