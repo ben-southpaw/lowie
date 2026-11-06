@@ -6,7 +6,7 @@ Free and open source under the [SIL Open Font License 1.1](../release/OFL.txt): 
 
 ![Lowie demos](../release/images/demos-sheet.png)
 
-**[Download Lowie 0.1](https://github.com/ben-southpaw/lowie/releases/latest)**
+**[Download Lowie 0.1](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
 
 ## Styles
 
@@ -38,7 +38,7 @@ Capitals join into the lowercase letter after them, never to each other.
 
 ## Good to know
 
-- Lowie is a display font. Use it at 30px and above; below that the dots merge into grey.
+- Lowie is a display font. The dots read as dots from about 150px; at 30 to 150px they give a chalky, stippled texture; below 30px they merge into grey.
 - Files are large (about 1 MB per style as WOFF2), because every dot is its own shape. Fine for headings and print, heavy for body text on a website.
 
 ## Characters
