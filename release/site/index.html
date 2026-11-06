@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lowie</title>
+<meta name="description" content="Lowie: a free, connected serif drawn as hand-poke tattoo dots.">
+<style>
+@font-face { font-family: "Lowie Poke"; src: url("fonts/Lowie-Poke.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Lowie Poke Shaded"; src: url("fonts/Lowie-PokeShaded.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Lowie Poke Line"; src: url("fonts/Lowie-PokeLine.woff2") format("woff2"); font-display: swap; }
+:root { --paper: #f1ebe0; --ink: #1c1a17; --muted: #6d655a; --red: #b8282f; --line: #d6ccbb; }
+@media (prefers-color-scheme: dark) { :root { --paper: #191816; --ink: #ece4d4; --muted: #9a917f; --red: #e0545a; --line: #34312b; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+header { padding: 48px 0 24px; border-bottom: 1px solid var(--line); }
+.hero { font-family: "Lowie Poke"; font-size: clamp(96px, 22vw, 260px); line-height: 1; margin: 0; }
+.tag { font-size: 20px; max-width: 34em; margin: 12px 0 0; }
+.tag a { color: var(--red); }
+.cta { display: inline-block; margin-top: 20px; padding: 12px 20px; background: var(--ink); color: var(--paper); border-radius: 6px; text-decoration: none; font-weight: 600; }
+section { padding: 40px 0; border-bottom: 1px solid var(--line); }
+h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 20px; }
+.controls button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); cursor: pointer; }
+.controls button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.controls label { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+#tester { width: 100%; min-height: 1.4em; font-size: 120px; line-height: 1.15; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: "Lowie Poke"; overflow-wrap: anywhere; }
+#tester:focus-visible { outline: 2px solid var(--red); outline-offset: 6px; }
+.lo #tester, .lo .pair-b { font-feature-settings: "ss01" 1; }
+.styles div { font-size: 64px; line-height: 1.2; margin: 0 0 8px; overflow-wrap: anywhere; }
+.styles small { display: block; font-size: 13px; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; }
+.pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.pairs div { font-family: "Lowie Poke"; font-size: 56px; line-height: 1.2; overflow-wrap: anywhere; }
+.pair-b { font-feature-settings: "ss01" 1; }
+.glyphs { font-family: "Lowie Poke"; font-size: 44px; line-height: 1.5; word-break: break-all; letter-spacing: .08em; }
+img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+footer { padding: 32px 0; color: var(--muted); font-size: 14px; }
+footer a { color: inherit; }
+@media (max-width: 640px) { #tester { font-size: 64px; } .pairs { grid-template-columns: 1fr; } .styles div { font-size: 44px; } }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1 class="hero">Lowie</h1>
+  <p class="tag">A connected serif drawn as hand-poke tattoo dots. Every letter joins the next. Free and open source under the <a href="https://openfontlicense.org">SIL Open Font License</a>.</p>
+  <a class="cta" href="https://github.com/ben-southpaw/lowie/releases/latest">Download Lowie 0.1</a>
+</header>
+
+<section>
+  <h2>Type to try it</h2>
+  <div class="controls" role="group" aria-label="Style">
+    <button type="button" data-f="Lowie Poke" aria-pressed="true">Poke</button>
+    <button type="button" data-f="Lowie Poke Shaded" aria-pressed="false">Poke Shaded</button>
+    <button type="button" data-f="Lowie Poke Line" aria-pressed="false">Poke Line</button>
+    <label>Size <input type="range" id="size" min="32" max="220" value="120"></label>
+    <label><input type="checkbox" id="lo"> All low joins (ss01)</label>
+  </div>
+  <div id="tester" contenteditable="true" spellcheck="false" role="textbox" aria-label="Type to test Lowie">koffie &amp; kefir</div>
+</section>
+
+<section class="styles">
+  <h2>Three styles</h2>
+  <div style="font-family:'Lowie Poke'">hold fast<small>Poke: rows of dots packed solid</small></div>
+  <div style="font-family:'Lowie Poke Shaded'">slow rivers<small>Poke Shaded: dense edge, lighter shading inside</small></div>
+  <div style="font-family:'Lowie Poke Line'">borrowed light<small>Poke Line: the outline only</small></div>
+</section>
+
+<section>
+  <h2>Joins</h2>
+  <p>Joins happen by themselves. b, o, r, v and w hand over along the top, as in handwriting. Stylistic set 1 makes every letter join from the foot.</p>
+  <div class="pairs">
+    <div>brown woven<small style="display:block;font:13px ui-sans-serif,system-ui;color:var(--muted)">default</small></div>
+    <div class="pair-b">brown woven<small style="display:block;font:13px ui-sans-serif,system-ui;color:var(--muted)">all low joins (ss01)</small></div>
+  </div>
+</section>
+
+<section>
+  <h2>In use</h2>
+  <img src="demos-sheet.png" alt="Lowie on a cinema poster, a record sleeve, a book cover, a tattoo flash sheet, a café board and its own wordmark" loading="lazy">
+</section>
+
+<section>
+  <h2>Characters</h2>
+  <div class="glyphs">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 àáâäãåçèéêëìíîïñòóôöõùúûüýÿ ÀÁÂÄÃÅÇÈÉÊËÌÍÎÏÑÒÓÔÖÕÙÚÛÜÝ .,:;!?¡¿'"‘’“”()[]/\|-–—_ &amp;@#%£€$+−=×&lt;&gt;*…°^~·</div>
+</section>
+
+<footer>
+  Lowie 0.1 · Copyright 2026 Ben Dryden · <a href="OFL.txt">SIL Open Font License 1.1</a> · Display sizes, 30px and above.
+</footer>
+</main>
+<script>
+const tester = document.getElementById('tester');
+document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', x === b));
+  tester.style.fontFamily = `"${b.dataset.f}"`;
+}));
+document.getElementById('size').addEventListener('input', e => tester.style.fontSize = e.target.value + 'px');
+document.getElementById('lo').addEventListener('change', e => document.body.classList.toggle('lo', e.target.checked));
+</script>
+</body>
+</html>
