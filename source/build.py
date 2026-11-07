@@ -74,10 +74,10 @@ VARIANTS = {
     "Powder Rail": dict(join="powder-rail", rail=48, grain=9, density=1.5),
     "Poke Low": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90), high_exits="",
                      st=104, stc=112, thin=50, sf=40, so=44),
-    # Release Poke: organic dots, Poke Soft settings (0.2, and again from 0.4; Ben, 2026-11-07).
-    # 0.3 used the Poke Even settings below.
-    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
-                 st=112, stc=120, thin=60, sf=48, so=48),
+    # Release Poke from 0.5: Poke Ink 85 (mixed sizes, small dots in the gaps, irregular
+    # hand-poke dot shapes drawn at 85%; Ben, 2026-11-07). 0.2 and 0.4 used Poke Soft, 0.3 Poke Even.
+    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0, ink_scale=0.85,
+                 joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     # The 0.1 Poke: rows that follow the contour
     "Poke Classic": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
                          st=104, stc=112, thin=50, sf=40, so=44),
@@ -90,6 +90,22 @@ VARIANTS = {
                            st=108, stc=116, thin=56, sf=44, so=46),
     # Separated dots: diameter below the minimum spacing, so dots do not merge
     # into clumps or leave sharp notches where they overlap (Ben, 2026-11-07)
+    # Soft plus small dots in the gaps (Ben: "more variety with smaller dots", 2026-11-07)
+    "Poke Mix": dict(dots="organic", dot=24, gap=44, jitter=0.3, fill=(0.3, 0.55, 0.6, 20),
+                     joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Wider size range in the main dots too, plus the gap fill
+    "Poke Mix Wide": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25),
+                          joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Mix Wide with irregular hand-poke dots (Ben: "too circular, too perfect", 2026-11-07)
+    "Poke Ink": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0,
+                     joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Ink with dots drawn smaller at the same spacing, so fewer merge (Ben, 2026-11-07)
+    "Poke Ink 85": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0, ink_scale=0.85,
+                        joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Ink 75": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0, ink_scale=0.75,
+                        joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Ink Rough": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.8,
+                           joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Sparse": dict(dots="organic", dot=16, gap=44, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
                         joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Even": dict(dots="organic", dot=13, gap=36, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
@@ -260,13 +276,25 @@ def dotify(path):
         gx, gy = int(x // cell), int(y // cell)
         for i in range(gx - 2, gx + 3):
             for j in range(gy - 2, gy + 3):
-                for (qx, qy) in grid.get((i, j), ()):
+                for (qx, qy, qr) in grid.get((i, j), ()):
                     if (qx - x) ** 2 + (qy - y) ** 2 < dmin * dmin:
                         return False
         return True
 
+    def clear(x, y, r, k):
+        """True if a dot of radius r at (x, y) overlaps each neighbour by at most
+        (1 - k) of its own radius: k=1 means not touching."""
+        gx, gy = int(x // cell), int(y // cell)
+        for i in range(gx - 3, gx + 4):
+            for j in range(gy - 3, gy + 4):
+                for (qx, qy, qr) in grid.get((i, j), ()):
+                    if math.hypot(qx - x, qy - y) < qr + r * k:
+                        return False
+        return True
+    free.clear = clear
+
     def add(x, y, r):
-        grid.setdefault((int(x // cell), int(y // cell)), []).append((x, y))
+        grid.setdefault((int(x // cell), int(y // cell)), []).append((x, y, r))
         dots.append((x, y, r))
 
     if P["dots"] in ("poke", "shade", "line"):
@@ -314,10 +342,47 @@ def dotify(path):
     return dots_to_path(dots)
 
 
+def ink_dot(cx, cy, r, rough, extras=True):
+    """One hand-poke dot: a lumpy blob, often oval or teardrop where the needle
+    went in at an angle. rough scales every irregularity (0 = near circle)."""
+    ang = P.get("_hand", 0.0) + RNG.gauss(0, 0.6)          # the hand keeps a rough angle
+    stretch = 1 + rough * RNG.uniform(0.0, 0.45)
+    tail = rough * RNG.uniform(0.0, 0.5) if RNG.random() < 0.35 else 0.0
+    flat = rough * RNG.uniform(0.1, 0.3) if RNG.random() < 0.15 else 0.0
+    harm = [(k, rough * RNG.uniform(0.02, 0.12) / k * 2, RNG.uniform(0, 2 * math.pi)) for k in (2, 3, 5)]
+    fa = RNG.uniform(0, 2 * math.pi)
+    pts = []
+    n = 18
+    for i in range(n):
+        a = 2 * math.pi * i / n
+        k = 1 + sum(amp * math.cos(h * a + ph) for h, amp, ph in harm)
+        k *= 1 + tail * max(0.0, math.cos(a)) ** 3          # drag one side to a point
+        if flat and math.cos(a - fa) > 0.75:                  # a flattened side
+            k *= 1 - flat * (math.cos(a - fa) - 0.75) * 4
+        x, y = math.cos(a) * r * k * stretch, math.sin(a) * r * k
+        pts.append((cx + x * math.cos(ang) - y * math.sin(ang), cy + x * math.sin(ang) + y * math.cos(ang)))
+    out = [("closed", pts)]
+    if extras and RNG.random() < 0.12 * rough:                # double poke: a peanut
+        d = r * RNG.uniform(0.5, 0.8); b = ang + RNG.gauss(0, 0.8)
+        out += ink_dot(cx + d * math.cos(b), cy + d * math.sin(b), r * RNG.uniform(0.6, 0.85), rough, False)
+    if extras and RNG.random() < 0.10 * rough:                # a speck of spread ink
+        d = r * RNG.uniform(1.4, 2.0); b = RNG.uniform(0, 2 * math.pi)
+        out += ink_dot(cx + d * math.cos(b), cy + d * math.sin(b), r * RNG.uniform(0.15, 0.28), rough * 0.5, False)
+    return out
+
+
 def dots_to_path(dots):
     jit = P["jitter"]
     out = pathops.Path(fillType=pathops.FillType.WINDING)
     pen = out.getPen()
+    rough = P.get("rough")
+    if rough:
+        P["_hand"] = RNG.uniform(0, math.pi)
+        for x, y, r in dots:
+            for sh in ink_dot(x, y, r * P.get("ink_scale", 1.0), rough):
+                emit(pen, sh, True)
+        out.simplify(fix_winding=True, keep_starting_points=False, clockwise=True)
+        return out
     for x, y, r in dots:
         emit(pen, grain(x, y, r, RNG.uniform(0, math.pi), RNG.uniform(1.0, 1.0 + jit * 0.6)), True)
     out.simplify(fix_winding=True, keep_starting_points=False, clockwise=True)
@@ -368,6 +433,16 @@ def organic(fp, inside, free, add):
         x, y = RNG.uniform(x0, x1), RNG.uniform(y0, y1)
         if inside(x, y) and free(x, y, gap * RNG.uniform(0.8, 0.95)):
             add(x, y, size())
+
+    # 3. small dots in the gaps, as when the needle goes in shallow
+    fill = P.get("fill")
+    if fill:
+        lo, hi, k, n = fill            # radius range (x r0), overlap allowance, tries per gap^2
+        for _ in range(int((x1 - x0) * (y1 - y0) / (gap * gap) * n)):
+            x, y = RNG.uniform(x0, x1), RNG.uniform(y0, y1)
+            r = r0 * RNG.uniform(lo, hi)
+            if inside(x, y) and free.clear(x, y, r, k):
+                add(x, y, r)
 
 
 def poke_rows(fp, inside, free, add):
@@ -1784,7 +1859,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.4"
+VERSION = "0.5"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "

@@ -8,7 +8,7 @@ Free and open source under the [SIL Open Font License 1.1](OFL.txt): use it for 
 
 ## Styles
 
-- **Poke**: loose, scattered dots with a ragged edge, like skin work.
+- **Poke**: irregular hand-poke dots in mixed sizes, some oval or doubled, with a ragged edge.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 
@@ -39,7 +39,7 @@ Lowie has one weight. On headings set `font-weight: 400; font-synthesis: none;`,
 ## Good to know
 
 - Lowie is a display font. Use it at 30px and above; below that the dots merge into grey.
-- Files are large (0.5 to 1.1 MB per style as WOFF2), because every dot is its own shape. Fine for headings and print, heavy for body text on a website.
+- Files are large (0.8 to 1.7 MB per style as WOFF2), because every dot is its own shape. Fine for headings and print, heavy for body text on a website.
 
 ## Characters
 

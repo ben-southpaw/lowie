@@ -15,7 +15,8 @@ default in most apps). b, o, r, v and w hand over along the top, as in
 handwriting; the rest join from the foot.
 
 Three styles:
-- Poke: loose, scattered dots with a ragged edge, as in hand-poke work.
+- Poke: irregular hand-poke dots in mixed sizes, some oval, teardrop or
+  doubled, with small dots in the gaps and a ragged edge.
 - Poke Shaded: a dense edge with lighter dot shading inside.
 - Poke Line: the outline only, as line work.
 
@@ -34,6 +35,12 @@ and skia-pathops.
 
 Changelog
 ---------
+
+0.5 (2026-11-07)
+- Poke redrawn with irregular dots: lumpy, often oval or teardrop as
+  if the needle went in at an angle, the odd double poke and speck of
+  spread ink. A wider range of dot sizes, with small dots in the gaps.
+  Larger file (1.7 MB as WOFF2).
 
 0.4 (2026-11-07)
 - Poke back to the 0.2 design. The clumped look on the website header
