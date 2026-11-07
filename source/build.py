@@ -74,10 +74,10 @@ VARIANTS = {
     "Powder Rail": dict(join="powder-rail", rail=48, grain=9, density=1.5),
     "Poke Low": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90), high_exits="",
                      st=104, stc=112, thin=50, sf=40, so=44),
-    # Release Poke from 0.3: organic dots that never touch (Ben picked Poke Even, 2026-11-07).
-    # 0.2 used the Poke Soft settings below.
-    "Poke": dict(dots="organic", dot=13, gap=36, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
-                 joinw=("wedge", 44, 92), st=108, stc=116, thin=56, sf=44, so=46),
+    # Release Poke: organic dots, Poke Soft settings (0.2, and again from 0.4; Ben, 2026-11-07).
+    # 0.3 used the Poke Even settings below.
+    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
+                 st=112, stc=120, thin=60, sf=48, so=48),
     # The 0.1 Poke: rows that follow the contour
     "Poke Classic": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
                          st=104, stc=112, thin=50, sf=40, so=44),
@@ -1784,7 +1784,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.3"
+VERSION = "0.4"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "

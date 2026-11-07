@@ -8,7 +8,7 @@ Free and open source under the [SIL Open Font License 1.1](OFL.txt): use it for 
 
 ## Styles
 
-- **Poke**: fine, separate dots scattered with a loose edge, like a fine needle.
+- **Poke**: loose, scattered dots with a ragged edge, like skin work.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 
@@ -33,6 +33,8 @@ Capitals join into the lowercase letter after them, never to each other.
   src: url("Lowie-Poke.woff2") format("woff2");
 }
 ```
+
+Lowie has one weight. On headings set `font-weight: 400; font-synthesis: none;`, or the browser fakes a bold and the dots merge.
 
 ## Good to know
 

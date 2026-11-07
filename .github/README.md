@@ -6,11 +6,11 @@ Free and open source under the [SIL Open Font License 1.1](../release/OFL.txt): 
 
 ![Lowie demos](../release/images/demos-sheet.png)
 
-**[Download Lowie 0.3](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
+**[Download Lowie 0.4](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
 
 ## Styles
 
-- **Poke**: fine, separate dots scattered with a loose edge, like a fine needle.
+- **Poke**: loose, scattered dots with a ragged edge, like skin work.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 
@@ -35,6 +35,8 @@ Capitals join into the lowercase letter after them, never to each other.
   src: url("Lowie-Poke.woff2") format("woff2");
 }
 ```
+
+Lowie has one weight. On headings set `font-weight: 400; font-synthesis: none;`, or the browser fakes a bold and the dots merge.
 
 ## Good to know
 

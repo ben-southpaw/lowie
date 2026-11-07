@@ -15,7 +15,7 @@ default in most apps). b, o, r, v and w hand over along the top, as in
 handwriting; the rest join from the foot.
 
 Three styles:
-- Poke: fine, separate dots scattered with a loose edge, as in hand-poke work.
+- Poke: loose, scattered dots with a ragged edge, as in hand-poke work.
 - Poke Shaded: a dense edge with lighter dot shading inside.
 - Poke Line: the outline only, as line work.
 
@@ -34,6 +34,12 @@ and skia-pathops.
 
 Changelog
 ---------
+
+0.4 (2026-11-07)
+- Poke back to the 0.2 design. The clumped look on the website header
+  came from the browser faking a bold weight, not from the dots; the
+  site no longer does that. If you set Lowie on the web, use
+  font-weight: 400 and font-synthesis: none.
 
 0.3 (2026-11-07)
 - Poke redrawn again: smaller dots that never touch. In 0.2 the dots
