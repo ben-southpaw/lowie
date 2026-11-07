@@ -17,7 +17,7 @@ handwriting; the rest join from the foot.
 Three styles:
 - Poke: loose, mostly round dots in mixed sizes with a ragged edge; the odd
   dot oval, teardrop or doubled, as in hand-poke work.
-- Poke Shaded: a dense edge with lighter dot shading inside.
+- Poke Shaded: a loose dotted edge with sparse, smaller dots inside.
 - Poke Line: the outline only, as line work.
 
 Stylistic set 1 (ss01, "All low joins") makes every letter join from the foot.
@@ -35,6 +35,10 @@ and skia-pathops.
 
 Changelog
 ---------
+
+0.7 (2026-11-07)
+- Poke Shaded and Poke Line redrawn with the same loose dots and
+  skeleton as Poke, so the three styles match.
 
 0.6 (2026-11-07)
 - Poke: back to the 0.4 spacing with mostly round dots. Keeps some size

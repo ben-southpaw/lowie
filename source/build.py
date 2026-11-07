@@ -117,6 +117,16 @@ VARIANTS = {
     "Poke Soft Plus": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.6, 1.15), fill=(0.25, 0.5, 1.15, 5),
                            rough=0.9, round_rough=0.35, odd_share=0.15, ink_scale=1.0,
                            joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Release Shaded and Line from 0.7: same dots and skeleton as Poke 0.6 (Ben, 2026-11-07).
+    # The 0.1 to 0.6 versions are kept as Poke Shaded Classic and Poke Line Classic.
+    "Poke Shaded": dict(dots="organic", dot=15, gap=28, jitter=0.3, spread=(0.7, 1.15),
+                             rough=0.9, round_rough=0.35, odd_share=0.15, wob=0.2, edge_rows=1, edge_keep=0.9,
+                             edge_inset=(0.8, 1.2), inner=(1.35, 0.7),
+                             joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Line": dict(dots="organic", dot=14, gap=27, jitter=0.3, spread=(0.75, 1.15),
+                           rough=0.9, round_rough=0.35, odd_share=0.15, wob=0.15, edge_rows=1, edge_keep=0.93,
+                           edge_inset=(0.8, 1.15), inner=(0, 0),
+                           joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Ink Rough": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.8,
                            joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Sparse": dict(dots="organic", dot=16, gap=44, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
@@ -125,9 +135,9 @@ VARIANTS = {
                       joinw=("wedge", 44, 92), st=108, stc=116, thin=56, sf=44, so=46),
     "Poke Bigger": dict(dots="poke", dot=32, gap=60, jitter=0.3, joinw=("wedge", 60, 104),
                         st=124, stc=132, thin=70, sf=56, so=52),
-    "Poke Shaded": dict(dots="shade", dot=13, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
+    "Poke Shaded Classic": dict(dots="shade", dot=13, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
                         st=104, stc=112, thin=50, sf=40, so=44),
-    "Poke Line": dict(dots="line", dot=11, gap=22, jitter=0.3, joinw=("wedge", 40, 90),
+    "Poke Line Classic": dict(dots="line", dot=11, gap=22, jitter=0.3, joinw=("wedge", 40, 90),
                       st=104, stc=112, thin=50, sf=40, so=44),
     "Dot": dict(dots="fill", dot=15, gap=30, jitter=0.3),
     "Dot Fine": dict(dots="fill", dot=9, gap=18, jitter=0.25),
@@ -418,7 +428,8 @@ def organic(fp, inside, free, add):
         return r * 1.4 if RNG.random() < P.get("blow", 0.04) else r   # a few blowouts
 
     # 1. loose edge: irregular spacing, wandering inset, ~20% missing
-    for c in fp.contours:
+    rows, keep = P.get("edge_rows", 1), P.get("edge_keep", 0.8)
+    for c, row in [(c, k) for k in range(rows) for c in fp.contours]:
         pts = c + [c[0]]
         carry, wob = 0.0, 0.0
         for (x0, y0), (x1, y1) in zip(pts, pts[1:]):
@@ -433,9 +444,10 @@ def organic(fp, inside, free, add):
                 for nx, ny in ((-uy, ux), (uy, -ux)):
                     if not inside(x + nx * 2, y + ny * 2):
                         continue
-                    inset = r0 * RNG.uniform(0.7, 1.6) + wob
+                    lo, hi = P.get("edge_inset", (0.7, 1.6))
+                    inset = r0 * RNG.uniform(lo, hi) + wob + row * gap * 0.8
                     cx, cy = x + nx * inset, y + ny * inset
-                    if RNG.random() < 0.8 and inside(cx, cy) and free(cx, cy, gap * 0.82):
+                    if RNG.random() < keep and inside(cx, cy) and free(cx, cy, gap * 0.82):
                         add(cx, cy, size())
                     break
                 d += gap * RNG.uniform(0.85, 1.35)
@@ -445,11 +457,12 @@ def organic(fp, inside, free, add):
     xs = [x for c in fp.contours for x, _ in c]
     ys = [y for c in fp.contours for _, y in c]
     x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-    tries = int((x1 - x0) * (y1 - y0) / (gap * gap) * 30)
+    space, scale = P.get("inner", (1.0, 1.0))         # interior spacing and dot size (shade: sparser)
+    tries = int((x1 - x0) * (y1 - y0) / (gap * gap) * 30) if space else 0
     for _ in range(tries):
         x, y = RNG.uniform(x0, x1), RNG.uniform(y0, y1)
-        if inside(x, y) and free(x, y, gap * RNG.uniform(0.8, 0.95)):
-            add(x, y, size())
+        if inside(x, y) and free(x, y, gap * space * RNG.uniform(0.8, 0.95)):
+            add(x, y, size() * scale)
 
     # 3. small dots in the gaps, as when the needle goes in shallow
     fill = P.get("fill")
@@ -1876,7 +1889,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.6"
+VERSION = "0.7"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "
