@@ -74,9 +74,10 @@ VARIANTS = {
     "Powder Rail": dict(join="powder-rail", rail=48, grain=9, density=1.5),
     "Poke Low": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90), high_exits="",
                      st=104, stc=112, thin=50, sf=40, so=44),
-    # Release Poke from 0.2: organic dots, no traced edge (Ben picked Poke Soft, 2026-11-06)
-    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, joinw=("wedge", 48, 96),
-                 st=112, stc=120, thin=60, sf=48, so=48),
+    # Release Poke from 0.3: organic dots that never touch (Ben picked Poke Even, 2026-11-07).
+    # 0.2 used the Poke Soft settings below.
+    "Poke": dict(dots="organic", dot=13, gap=36, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
+                 joinw=("wedge", 44, 92), st=108, stc=116, thin=56, sf=44, so=46),
     # The 0.1 Poke: rows that follow the contour
     "Poke Classic": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
                          st=104, stc=112, thin=50, sf=40, so=44),
@@ -87,6 +88,12 @@ VARIANTS = {
                       st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Soft Fine": dict(dots="organic", dot=19, gap=35, jitter=0.3, joinw=("wedge", 44, 92),
                            st=108, stc=116, thin=56, sf=44, so=46),
+    # Separated dots: diameter below the minimum spacing, so dots do not merge
+    # into clumps or leave sharp notches where they overlap (Ben, 2026-11-07)
+    "Poke Sparse": dict(dots="organic", dot=16, gap=44, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
+                        joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Even": dict(dots="organic", dot=13, gap=36, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
+                      joinw=("wedge", 44, 92), st=108, stc=116, thin=56, sf=44, so=46),
     "Poke Bigger": dict(dots="poke", dot=32, gap=60, jitter=0.3, joinw=("wedge", 60, 104),
                         st=124, stc=132, thin=70, sf=56, so=52),
     "Poke Shaded": dict(dots="shade", dot=13, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
@@ -324,8 +331,9 @@ def organic(fp, inside, free, add):
     r0, gap, jit = P["dot"], P["gap"], P["jitter"]
 
     def size():
-        r = r0 * RNG.uniform(0.72, 1.15)
-        return r * 1.4 if RNG.random() < 0.04 else r       # a few blowouts
+        lo, hi = P.get("spread", (0.72, 1.15))
+        r = r0 * RNG.uniform(lo, hi)
+        return r * 1.4 if RNG.random() < P.get("blow", 0.04) else r   # a few blowouts
 
     # 1. loose edge: irregular spacing, wandering inset, ~20% missing
     for c in fp.contours:
@@ -338,7 +346,7 @@ def organic(fp, inside, free, add):
             ux, uy = (x1 - x0) / seg, (y1 - y0) / seg
             d = carry
             while d < seg:
-                wob = wob * 0.7 + RNG.gauss(0, r0 * 0.35)
+                wob = wob * 0.7 + RNG.gauss(0, r0 * P.get("wob", 0.35))
                 x, y = x0 + ux * d, y0 + uy * d
                 for nx, ny in ((-uy, ux), (uy, -ux)):
                     if not inside(x + nx * 2, y + ny * 2):
@@ -1776,7 +1784,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.2"
+VERSION = "0.3"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "

@@ -8,7 +8,7 @@ Free and open source under the [SIL Open Font License 1.1](OFL.txt): use it for 
 
 ## Styles
 
-- **Poke**: loose, scattered dots with a ragged edge, like skin work.
+- **Poke**: fine, separate dots scattered with a loose edge, like a fine needle.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 

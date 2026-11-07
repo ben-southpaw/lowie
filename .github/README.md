@@ -6,11 +6,11 @@ Free and open source under the [SIL Open Font License 1.1](../release/OFL.txt): 
 
 ![Lowie demos](../release/images/demos-sheet.png)
 
-**[Download Lowie 0.2](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
+**[Download Lowie 0.3](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
 
 ## Styles
 
-- **Poke**: loose, scattered dots with a ragged edge, like skin work.
+- **Poke**: fine, separate dots scattered with a loose edge, like a fine needle.
 - **Poke Shaded**: a dense edge, lighter shading inside.
 - **Poke Line**: the outline only.
 

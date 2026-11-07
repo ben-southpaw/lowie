@@ -15,7 +15,7 @@ default in most apps). b, o, r, v and w hand over along the top, as in
 handwriting; the rest join from the foot.
 
 Three styles:
-- Poke: loose, scattered dots with a ragged edge, as in hand-poke work.
+- Poke: fine, separate dots scattered with a loose edge, as in hand-poke work.
 - Poke Shaded: a dense edge with lighter dot shading inside.
 - Poke Line: the outline only, as line work.
 
@@ -34,6 +34,11 @@ and skia-pathops.
 
 Changelog
 ---------
+
+0.3 (2026-11-07)
+- Poke redrawn again: smaller dots that never touch. In 0.2 the dots
+  overlapped, which merged them into clumps with sharp notches at large
+  sizes. Lighter on the page; reads best from about 40px.
 
 0.2 (2026-11-06)
 - Poke redrawn: bigger dots scattered at random, with a loose edge row
