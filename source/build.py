@@ -74,9 +74,10 @@ VARIANTS = {
     "Powder Rail": dict(join="powder-rail", rail=48, grain=9, density=1.5),
     "Poke Low": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90), high_exits="",
                      st=104, stc=112, thin=50, sf=40, so=44),
-    # Release Poke from 0.5: Poke Ink 85 (mixed sizes, small dots in the gaps, irregular
-    # hand-poke dot shapes drawn at 85%; Ben, 2026-11-07). 0.2 and 0.4 used Poke Soft, 0.3 Poke Even.
-    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0, ink_scale=0.85,
+    # Release Poke from 0.6: Poke Soft Plus (Ben, 2026-11-07).
+    # History: 0.2 and 0.4 Poke Soft, 0.3 Poke Even, 0.5 Poke Ink 85.
+    "Poke": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.6, 1.15), fill=(0.25, 0.5, 1.15, 5),
+                 rough=0.9, round_rough=0.35, odd_share=0.15, ink_scale=1.0,
                  joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     # The 0.1 Poke: rows that follow the contour
     "Poke Classic": dict(dots="poke", dot=15, gap=27, jitter=0.3, joinw=("wedge", 40, 90),
@@ -104,6 +105,18 @@ VARIANTS = {
                         joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Ink 75": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.0, ink_scale=0.75,
                         joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Mostly round dots, some irregular (Ben: "too stone like", 2026-11-07)
+    "Poke Ink Round": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25),
+                           rough=1.0, round_rough=0.15, odd_share=0.35, ink_scale=0.9,
+                           joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    "Poke Ink Rounder": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25),
+                             rough=0.8, round_rough=0.1, odd_share=0.2, ink_scale=0.95,
+                             joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
+    # Soft's spacing and gentle lumps, a little size variety, sparse small dots that do not
+    # touch, the odd irregular dot (Ben: "looks like bubbles", 2026-11-07)
+    "Poke Soft Plus": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.6, 1.15), fill=(0.25, 0.5, 1.15, 5),
+                           rough=0.9, round_rough=0.35, odd_share=0.15, ink_scale=1.0,
+                           joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Ink Rough": dict(dots="organic", dot=24, gap=44, jitter=0.3, spread=(0.5, 1.2), fill=(0.25, 0.6, 0.5, 25), rough=1.8,
                            joinw=("wedge", 48, 96), st=112, stc=120, thin=60, sf=48, so=48),
     "Poke Sparse": dict(dots="organic", dot=16, gap=44, jitter=0.3, spread=(0.85, 1.1), blow=0.0, wob=0.2,
@@ -379,7 +392,11 @@ def dots_to_path(dots):
     if rough:
         P["_hand"] = RNG.uniform(0, math.pi)
         for x, y, r in dots:
-            for sh in ink_dot(x, y, r * P.get("ink_scale", 1.0), rough):
+            share = P.get("odd_share", 1.0)                  # share of dots drawn irregular
+            if r > P["dot"] * 0.9:                             # big dots stay mostly round
+                share *= 0.4
+            rr = rough if RNG.random() < share else P.get("round_rough", rough)
+            for sh in ink_dot(x, y, r * P.get("ink_scale", 1.0), rr):
                 emit(pen, sh, True)
         out.simplify(fix_winding=True, keep_starting_points=False, clockwise=True)
         return out
@@ -1859,7 +1876,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.5"
+VERSION = "0.6"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "
