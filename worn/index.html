@@ -1,0 +1,374 @@
+<title>Lowie Worn</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one column, the typing pad as hero, the type case below it, notes last. */
+:root {
+  --paper: #EDEFF1;
+  --sheet: #F7F8F9;
+  --text: #16191E;
+  --muted: #5E6775;
+  --ink: #1C2B4B;      /* hand-poke blue-black */
+  --accent: #3B5BA5;
+  --rule: #D5D9DF;
+  --body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0F1217; --sheet: #161A21; --text: #E5E8ED; --muted: #98A1AF;
+  --ink: #DCE2EC; --accent: #93AEEA; --rule: #2A303A; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --paper: #0F1217; --sheet: #161A21; --text: #E5E8ED; --muted: #98A1AF;
+  --ink: #DCE2EC; --accent: #93AEEA; --rule: #2A303A; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--paper); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px }
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 28px }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 24px }
+h1 { font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 }
+h1 span { color: var(--muted); font-weight: 500 }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 15px }
+.pad { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 18px 18px 14px; display: grid; gap: 12px; min-width: 0 }
+canvas { display: block; width: 100%; max-width: 100% }
+#padCanvas { min-height: 120px }
+.inputrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+label.small, .tag { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--muted); text-transform: uppercase }
+#typed { flex: 1 1 260px; min-width: 0; font: 17px var(--body); color: var(--text); background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px }
+#typed:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.status { font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 1.4em }
+section h2 { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 4px }
+section p.note { margin: 0 0 14px; color: var(--muted); font-size: 14px; max-width: 62ch }
+.case { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px }
+@media (max-width: 640px) { .case { grid-template-columns: repeat(7, minmax(0, 1fr)) } }
+.sort { display: grid; gap: 2px; justify-items: center; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 2px 5px; min-width: 0 }
+.sort canvas { width: 100%; aspect-ratio: 1 / 1.15 }
+.sort .n { font-family: var(--mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums }
+.sort .w { width: 70%; height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden }
+.sort .w i { display: block; height: 100%; background: var(--accent) }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center }
+button { font: 500 14px var(--body); color: var(--text); background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 12px; cursor: pointer }
+button:hover { border-color: var(--accent) }
+button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink) }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; border-top: 1px solid var(--rule); padding-top: 20px }
+.notes h3 { margin: 0 0 4px; font-size: 14px }
+.notes p { margin: 0; font-size: 14px; color: var(--muted); max-width: 62ch }
+.notes a { color: var(--accent) }
+#loading { font-family: var(--mono); font-size: 13px; color: var(--muted) }
+.casehead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin-bottom: 4px }
+.casehead h2 { margin: 0 }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden }
+.seg button { border: 0; border-radius: 0; padding: 6px 12px; background: var(--sheet); color: var(--muted) }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
+.seg button[disabled] { opacity: .45; cursor: default }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Lowie Worn <span>· a typeface with memory</span></h1>
+    <span class="tag">Lowie Poke 0.3 · prototype</span>
+  </header>
+  <p class="lede">Every letter is a sort. Each time anyone types it here, it wears a little: the hand-poked dots on its edges and joins go first, like a key worn smooth or a tattoo fading. Everyone who opens this page wears down the same font.</p>
+
+  <div class="pad">
+    <div id="loading">Loading Lowie…</div>
+    <canvas id="padCanvas" aria-label="Your text, set in Lowie at its current wear"></canvas>
+    <div class="inputrow">
+      <label class="small" for="typed">Type</label>
+      <input id="typed" type="text" autocomplete="off" spellcheck="false" value="minimum wear, maximum memory">
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <section>
+    <div class="casehead">
+      <h2>The type case</h2>
+      <div class="seg" role="group" aria-label="Whose wear to show">
+        <button id="viewAll" type="button" aria-pressed="true">Everyone</button>
+        <button id="viewMe" type="button" aria-pressed="false">Just you</button>
+      </div>
+    </div>
+    <p class="note" id="caseNote">Presses per letter from everyone who has typed here, and what that has done to each sort. Capitals and accented letters share their base letter's wear, as on a keyboard.</p>
+    <div class="case" id="case"></div>
+    <div class="controls">
+      <span id="simControls" class="controls" hidden>
+        <button class="primary" id="yearEn" type="button">Add a year of English</button>
+        <button id="yearNl" type="button">Add a year of Dutch</button>
+        <button id="reset" type="button">Reset your case</button>
+      </span>
+      <span class="status" id="caseStatus"></span>
+    </div>
+  </section>
+
+  <div class="notes">
+    <div><h3>How the wear works</h3><p>Each dot in a glyph has its own breaking point, set by a seeded random number and by how exposed it is: dots on the outer edge and in the joins break first. A dot shrinks before it drops out. Wear for a letter follows presses ÷ (presses + 100).</p></div>
+    <div><h3>Everyone, or just you</h3><p>Everyone shows the shared font: real keystrokes from every visitor, summed. Just you is your own case, kept in this browser, where you can also add simulated years of English or Dutch. Dutch hits e much harder (about 19% of letters) and wears n, v, j and z far faster than English.</p></div>
+    <div><h3>Prior art</h3><p>Memoire (Michelle Ando and Ryan Bugden, 2016) wore down across a printed issue, from drawn start and end states. Koruption and Hel have destruction axes. Lowie Worn differs in one way: each letter wears from its own use, live.</p></div>
+    <div><h3>About Lowie</h3><p>A connected hand-poke serif, open source under the SIL OFL. <a href="https://github.com/ben-southpaw/lowie" target="_blank" rel="noopener">GitHub</a> · <a href="https://ben-southpaw.github.io/lowie/" target="_blank" rel="noopener">specimen</a>. The joins here are Lowie's own: high from b, o, r, v, w, low from the rest.</p></div>
+  </div>
+</div>
+
+<script src="shaper.js"></script>
+<script>
+(function () {
+  const H = 100;                         // presses at which a sort is half worn
+  const STORE = "lowie-worn-counts-v1";
+  const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+  const FREQ = {
+    en: {e:12.7,t:9.1,a:8.2,o:7.5,i:7.0,n:6.7,s:6.3,h:6.1,r:6.0,d:4.3,l:4.0,c:2.8,u:2.8,m:2.4,w:2.4,f:2.2,g:2.0,y:2.0,p:1.9,b:1.5,v:1.0,k:0.8,j:0.15,x:0.15,q:0.1,z:0.07},
+    nl: {e:18.9,n:10.0,a:7.5,t:6.8,i:6.5,r:6.4,o:6.1,d:5.9,s:3.7,l:3.6,g:3.4,v:2.9,h:2.4,k:2.3,m:2.2,u:2.0,b:1.6,p:1.6,w:1.5,j:1.5,z:1.4,c:1.2,f:0.8,x:0.04,y:0.04,q:0.01}
+  };
+  const YEAR = 600;                     // presses per 100% of letter frequency in a simulated year
+
+  let font, shape, counts = {}, prevText = "";
+  // Shared case: every visitor's real keystrokes, one db document per person, summed here.
+  let shared = null, people = 0, mine = {}, view = "me", viewTouched = false;
+  let db = null, uid = null, writeTimer = null, writing = false, dirty = false;
+  const cur = () => (view === "all" && shared) ? shared : counts;
+  const $ = id => document.getElementById(id);
+
+  function load() { try { const v = JSON.parse(localStorage.getItem(STORE)); return v && typeof v === "object" ? v : null } catch (e) { return null } }
+  function save() { try { localStorage.setItem(STORE, JSON.stringify(counts)) } catch (e) {} }
+
+  const keyOf = ch => ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const wearOf = k => { const c = cur()[k] || 0; return c / (c + H) };
+
+  // Seeded randomness per glyph form and dot index, so wear is the same on every visit.
+  function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
+  function rand(seed) { let t = seed + 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296 }
+
+  // Build each glyph's dots once: a Path2D in font units plus its centre and breaking point.
+  const cache = new Map();
+  function dotsFor(name) {
+    if (cache.has(name)) return cache.get(name);
+    const g = font.glyphs[name]; const out = [];
+    if (!g) { cache.set(name, out); return out }
+    const raw = g.d.map(arr => {
+      let pts = [];
+      if (arr[0] === -1) for (let i = 1; i < arr.length; i += 3) pts.push([arr[i], arr[i + 1], arr[i + 2]]);
+      else for (let i = 0; i < arr.length; i += 2) pts.push([arr[i], arr[i + 1], 0]);
+      let cx = 0, cy = 0; pts.forEach(p => { cx += p[0]; cy += p[1] }); cx /= pts.length; cy /= pts.length;
+      return { pts, cx, cy };
+    });
+    if (!raw.length) { cache.set(name, out); return out }
+    let gx = 0, gy = 0; raw.forEach(d => { gx += d.cx; gy += d.cy }); gx /= raw.length; gy /= raw.length;
+    let maxD = 1; raw.forEach(d => { maxD = Math.max(maxD, Math.hypot(d.cx - gx, d.cy - gy)) });
+    const base = hash(name);
+    raw.forEach((d, i) => {
+      const edge = Math.hypot(d.cx - gx, d.cy - gy) / maxD;      // 0 centre, 1 outer edge
+      const r = rand(base + i * 7919);
+      const theta = 0.12 + 0.95 * (0.55 * r + 0.45 * (1 - edge)); // exposed dots break sooner
+      out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, theta });
+    });
+    cache.set(name, out); return out;
+  }
+  // TrueType quadratic contour to Path2D, relative to the dot centre so it can shrink in place.
+  function toPath(pts, cx, cy) {
+    const p = new Path2D(); const n = pts.length;
+    const P = i => pts[(i + n) % n];
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    let s = 0; while (s < n && !pts[s][2]) s++;
+    let start = s < n ? P(s) : mid(P(0), P(1));
+    if (s === n) s = 0;
+    p.moveTo(start[0] - cx, -(start[1] - cy));
+    for (let k = 1; k <= n; k++) {
+      const cur = P(s + k);
+      if (cur[2]) { p.lineTo(cur[0] - cx, -(cur[1] - cy)); continue }
+      const nxt = P(s + k + 1);
+      const end = nxt[2] ? nxt : mid(cur, nxt);
+      p.quadraticCurveTo(cur[0] - cx, -(cur[1] - cy), end[0] - cx, -(end[1] - cy));
+      if (nxt[2]) k++;
+    }
+    p.closePath(); return p;
+  }
+
+  function drawGlyph(ctx, name, x, y, scale, wear) {
+    for (const d of dotsFor(name)) {
+      const s = Math.max(0, Math.min(1, (d.theta - wear) / 0.12));
+      if (s <= 0.02) continue;
+      ctx.save();
+      ctx.translate(x + d.cx * scale, y - d.cy * scale);
+      ctx.scale(scale * s, scale * s);
+      ctx.globalAlpha = 0.55 + 0.45 * s;
+      ctx.fill(d.path);
+      ctx.restore();
+    }
+  }
+
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+  function renderPad() {
+    const cv = $("padCanvas"); const w = cv.clientWidth; if (!w) return;
+    const size = w < 520 ? 52 : w < 800 ? 76 : 96;
+    const scale = size / font.upm, lineH = size * 1.3;
+    const words = ($("typed").value || " ").split(/(\s+)/);
+    // Shape the full line, then wrap at spaces by measured advance.
+    const glyphs = shape($("typed").value);
+    const lines = [[]]; let lx = 0, word = [], wx = 0;
+    const flush = () => {
+      if (lx + wx > w && lines[lines.length - 1].length) { lines.push([]); lx = 0 }
+      word.forEach(g => lines[lines.length - 1].push(g)); lx += wx; word = []; wx = 0;
+    };
+    for (const g of glyphs) {
+      const adv = (g.glyph && font.glyphs[g.glyph] ? font.glyphs[g.glyph].a : font.upm * 0.3) * scale;
+      word.push(Object.assign({ adv }, g)); wx += adv;
+      if (g.ch === " ") flush();
+    }
+    flush();
+    const dpr = window.devicePixelRatio || 1;
+    const h = Math.max(lineH * lines.length + size * 0.35, 120);
+    cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = css("--ink");
+    lines.forEach((line, li) => {
+      let x = 0; const y = size * 1.0 + li * lineH;
+      for (const g of line) { if (g.glyph) drawGlyph(ctx, g.glyph, x, y, scale, wearOf(keyOf(g.ch))); x += g.adv }
+    });
+  }
+
+  function buildCase() {
+    const box = $("case"); box.innerHTML = "";
+    LETTERS.forEach(L => {
+      const el = document.createElement("div"); el.className = "sort";
+      el.innerHTML = `<canvas data-l="${L}" aria-label="Sort ${L}"></canvas><span class="n" data-n="${L}"></span><span class="w"><i data-w="${L}"></i></span>`;
+      box.appendChild(el);
+    });
+  }
+  function renderCase() {
+    const ink = css("--ink"); const dpr = window.devicePixelRatio || 1;
+    document.querySelectorAll(".sort canvas").forEach(cv => {
+      const L = cv.dataset.l, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = ink;
+      const name = font.cmap[L]; const g = font.glyphs[name]; const scale = (w * 0.95) / font.upm;
+      drawGlyph(ctx, name, (w - g.a * scale) / 2, h * 0.74, scale, wearOf(L));
+    });
+    const C = cur();
+    LETTERS.forEach(L => {
+      const c = C[L] || 0, wr = wearOf(L);
+      document.querySelector(`[data-n="${L}"]`).textContent = c >= 10000 ? Math.round(c / 1000) + "k" : c;
+      document.querySelector(`[data-w="${L}"]`).style.width = Math.round(wr * 100) + "%";
+    });
+    const worst = LETTERS.slice().sort((a, b) => (C[b] || 0) - (C[a] || 0))[0];
+    const total = LETTERS.reduce((s, L) => s + (C[L] || 0), 0);
+    const who = view === "all" ? `${people} ${people === 1 ? "person" : "people"} · ` : "";
+    $("caseStatus").textContent = total ? `${who}${total.toLocaleString("en-GB")} presses · most worn: ${worst} (${Math.round(wearOf(worst) * 100)}%)`
+      : (view === "all" ? "Nobody has typed here yet. Your keystrokes will be the first wear." : "All sorts new.");
+  }
+  function renderAll() { renderPad(); renderCase() }
+
+  function addYear(lang) {
+    const f = FREQ[lang];
+    LETTERS.forEach(L => { counts[L] = (counts[L] || 0) + Math.round((f[L] || 0) / 100 * YEAR * 10) / 10 });
+    LETTERS.forEach(L => { counts[L] = Math.round(counts[L]) });
+    save(); renderAll();
+    $("status").textContent = lang === "en" ? "Added a year of English typing." : "Added a year of Dutch typing.";
+  }
+
+  function onInput() {
+    const now = $("typed").value;
+    // Count only characters added since the last input event; deleting never un-wears a sort.
+    let i = 0; while (i < prevText.length && i < now.length && prevText[i] === now[i]) i++;
+    let j = 0; while (j < prevText.length - i && j < now.length - i && prevText[prevText.length - 1 - j] === now[now.length - 1 - j]) j++;
+    const added = now.slice(i, now.length - j);
+    let n = 0;
+    for (const ch of added) {
+      const k = keyOf(ch); if (!LETTERS.includes(k)) continue;
+      counts[k] = (counts[k] || 0) + 1; n++;
+      if (db && uid && shared) { mine[k] = (mine[k] || 0) + 1; shared[k] = (shared[k] || 0) + 1 }
+    }
+    prevText = now;
+    if (n) {
+      save(); if (db && uid && shared) scheduleWrite();
+      $("status").textContent = `${n} press${n > 1 ? "es" : ""} added` + (db && uid && shared ? " to the shared font." : ".");
+    }
+    renderAll();
+  }
+
+  function setView(v) {
+    view = v;
+    $("viewAll").setAttribute("aria-pressed", String(v === "all"));
+    $("viewMe").setAttribute("aria-pressed", String(v === "me"));
+    $("simControls").hidden = v !== "me";
+    $("caseNote").textContent = v === "all"
+      ? "Presses per letter from everyone who has typed here, and what that has done to each sort. Capitals and accented letters share their base letter's wear, as on a keyboard."
+      : "Your own case, kept in this browser. Add simulated years to see where wear goes. Simulated presses never reach the shared font.";
+    if (font) renderAll();
+  }
+
+  // Untrusted rows: keep only a to z with sane non-negative numbers.
+  function clean(obj) {
+    const out = {}; if (!obj || typeof obj !== "object") return out;
+    LETTERS.forEach(L => { const v = Number(obj[L]); if (Number.isFinite(v) && v > 0) out[L] = Math.min(Math.floor(v), 1e6) });
+    return out;
+  }
+
+  function scheduleWrite() {
+    dirty = true; clearTimeout(writeTimer);
+    writeTimer = setTimeout(flushWrite, 1500);
+  }
+  async function flushWrite() {
+    if (writing || !dirty || !db || !uid) return;
+    writing = true; dirty = false;
+    try { await db.collection("presses").doc(uid).set({ counts: clean(mine) }) }
+    catch (e) { $("status").textContent = "Your presses were kept here but not saved to the shared font." }
+    finally { writing = false; if (dirty) scheduleWrite() }
+  }
+
+  async function connectShared() {
+    if (!window.claude || typeof window.claude.use !== "function") return;
+    try {
+      const [d, u] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+      if (!d) return;
+      db = d; uid = u ? await u.id() : null;
+      let first = true;
+      const timer = setTimeout(() => { if (first) $("caseStatus").textContent = "The shared font is slow to load. Showing your case for now." }, 10000);
+      db.collection("presses").onSnapshot(snap => {
+        clearTimeout(timer);
+        const tot = {}; let n = 0;
+        snap.docs.forEach(doc => {
+          const body = doc.data(); if (!body) return;
+          const c = clean(body.counts); if (!Object.keys(c).length) return;
+          n++;
+          if (uid && doc.id === uid) { if (first || !dirty) mine = Object.assign({}, c) }
+          LETTERS.forEach(L => { if (c[L]) tot[L] = (tot[L] || 0) + c[L] });
+        });
+        // Keep my unsaved presses visible until the write lands.
+        if (dirty && uid) LETTERS.forEach(L => { const local = mine[L] || 0; const doc = snap.docs.find(x => x.id === uid); const saved = doc ? (clean((doc.data() || {}).counts)[L] || 0) : 0; if (local > saved) tot[L] = (tot[L] || 0) + local - saved });
+        shared = tot; people = n;
+        $("viewAll").disabled = false;
+        if (first && !viewTouched) setView("all");
+        first = false; renderAll();
+      }, () => { clearTimeout(timer); $("caseStatus").textContent = "The shared font could not load. Showing your case." });
+    } catch (e) { /* shared font unavailable: the page works on your case alone */ }
+  }
+
+  fetch("lowie-poke.json").then(r => r.json()).then(data => {
+    font = data; shape = makeShaper(font);
+    $("loading").hidden = true;
+    const stored = load();
+    if (stored) { counts = stored; $("status").textContent = "Your saved wear from last time." }
+    else {
+      counts = {}; LETTERS.forEach(L => { counts[L] = Math.round(FREQ.en[L] / 100 * YEAR) });
+      $("status").textContent = "Sample: one year of English typing. Reset your case to start clean.";
+    }
+    prevText = $("typed").value;
+    buildCase(); renderAll();
+    $("typed").addEventListener("input", onInput);
+    $("yearEn").addEventListener("click", () => addYear("en"));
+    $("yearNl").addEventListener("click", () => addYear("nl"));
+    $("reset").addEventListener("click", () => { counts = {}; save(); renderAll(); $("status").textContent = "Your case is new again. The shared font keeps its wear." });
+    $("viewAll").disabled = true;
+    $("viewAll").addEventListener("click", () => { if (!shared) return; viewTouched = true; setView("all") });
+    $("viewMe").addEventListener("click", () => { viewTouched = true; setView("me") });
+    setView("me");
+    connectShared();
+    let t; window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(renderAll, 120) });
+    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", renderAll);
+    new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }).catch(() => { $("loading").textContent = "Lowie did not load. Reload the page to try again." });
+})();
+</script>
