@@ -2,382 +2,719 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one column, the typing pad as hero, the type case below it, notes last. */
+/* Layout: a full-screen canvas where Lowie stands on a floor and sheds dots onto it; then a keyboard wear map, a ten-year scrubber and a lineage row on a 1240px column. */
 :root {
-  --paper: #EDEFF1;
-  --sheet: #F7F8F9;
-  --text: #16191E;
-  --muted: #5E6775;
-  --ink: #1C2B4B;      /* hand-poke blue-black */
-  --accent: #3B5BA5;
-  --rule: #D5D9DF;
-  --body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --ground: #E3E5E2;   /* keycap grey */
+  --ink: #121419;      /* fresh tattoo ink */
+  --aged: #6F8796;     /* faded ink, and every fallen dot */
+  --now: #FF3B1F;      /* other people's presses, the caret, the scrubber handle */
+  --rule: #B6BCBE;
+  --muted: #4E5862;
+  --key: #ECEEEB;
+  --ui: "Martian Mono", ui-monospace, Menlo, monospace;
+  --text: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --paper: #0F1217; --sheet: #161A21; --text: #E5E8ED; --muted: #98A1AF;
-  --ink: #DCE2EC; --accent: #93AEEA; --rule: #2A303A; color-scheme: dark } }
+  --ground: #101215; --ink: #E6E8E6; --aged: #6F8796; --now: #FF3B1F; --rule: #2C3238; --muted: #9AA6AF; --key: #171A1E; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --paper: #0F1217; --sheet: #161A21; --text: #E5E8ED; --muted: #98A1AF;
-  --ink: #DCE2EC; --accent: #93AEEA; --rule: #2A303A; color-scheme: dark }
+  --ground: #101215; --ink: #E6E8E6; --aged: #6F8796; --now: #FF3B1F; --rule: #2C3238; --muted: #9AA6AF; --key: #171A1E; color-scheme: dark }
 
 * { box-sizing: border-box }
-body { background: var(--paper); color: var(--text); font-family: var(--body); font-size: 16px; line-height: 1.55;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 56px }
-.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 28px }
-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 24px }
-h1 { font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 }
-h1 span { color: var(--muted); font-weight: 500 }
-.lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 15px }
-.pad { background: var(--sheet); border: 1px solid var(--rule); border-radius: 6px; padding: 18px 18px 14px; display: grid; gap: 12px; min-width: 0 }
-canvas { display: block; width: 100%; max-width: 100% }
-#padCanvas { min-height: 120px }
-.inputrow { display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
-label.small, .tag { font-family: var(--mono); font-size: 12px; letter-spacing: .04em; color: var(--muted); text-transform: uppercase }
-#typed { flex: 1 1 260px; min-width: 0; font: 17px var(--body); color: var(--text); background: var(--paper); border: 1px solid var(--rule); border-radius: 4px; padding: 10px 12px }
-#typed:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.status { font-family: var(--mono); font-size: 12px; color: var(--muted); min-height: 1.4em }
-section h2 { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 4px }
-section p.note { margin: 0 0 14px; color: var(--muted); font-size: 14px; max-width: 62ch }
-.case { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 6px }
-@media (max-width: 640px) { .case { grid-template-columns: repeat(7, minmax(0, 1fr)) } }
-.sort { display: grid; gap: 2px; justify-items: center; background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 6px 2px 5px; min-width: 0 }
-.sort canvas { width: 100%; aspect-ratio: 1 / 1.15 }
-.sort .n { font-family: var(--mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums }
-.sort .w { width: 70%; height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden }
-.sort .w i { display: block; height: 100%; background: var(--accent) }
-.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center }
-button { font: 500 14px var(--body); color: var(--text); background: var(--sheet); border: 1px solid var(--rule); border-radius: 4px; padding: 8px 12px; cursor: pointer }
-button:hover { border-color: var(--accent) }
-button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink) }
-.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px 32px; border-top: 1px solid var(--rule); padding-top: 20px }
-.notes h3 { margin: 0 0 4px; font-size: 14px }
-.notes p { margin: 0; font-size: 14px; color: var(--muted); max-width: 62ch }
-.notes a { color: var(--accent) }
-#loading { font-family: var(--mono); font-size: 13px; color: var(--muted) }
-.casehead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; margin-bottom: 4px }
-.casehead h2 { margin: 0 }
-.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden }
-.seg button { border: 0; border-radius: 0; padding: 6px 12px; background: var(--sheet); color: var(--muted) }
-.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper) }
-.seg button[disabled] { opacity: .45; cursor: default }
-@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+html { scroll-behavior: smooth }
+body { background: var(--ground); color: var(--ink); font: 17px/1.5 var(--text); -webkit-font-smoothing: antialiased }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ground) }
+.gut { padding-left: max(40px, env(safe-area-inset-left, 0px)); padding-right: max(40px, env(safe-area-inset-right, 0px)) }
+@media (max-width: 640px) { .gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) } }
+.lab { font: 500 11px/1.4 var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-variant-numeric: tabular-nums }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+a { color: inherit }
+:focus-visible { outline: 2px solid var(--now); outline-offset: 3px }
+
+/* Top bar */
+.bar { position: fixed; top: env(safe-area-inset-top, 0px); left: 0; right: 0; z-index: 20; height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: color-mix(in srgb, var(--ground) 84%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px) }
+.bar .brand { font: 600 15px var(--text); letter-spacing: -.01em; text-decoration: none }
+.bar nav { display: flex; gap: 22px; align-items: center }
+.bar nav a { text-decoration: none }
+.bar nav a:hover { color: var(--ink) }
+.bar .get { color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; padding: 5px 12px }
+@media (max-width: 640px) { .bar nav a:not(.get) { display: none } }
+
+/* Hero */
+.hero { position: relative; height: 100svh; min-height: 560px; cursor: text; overflow: hidden }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+.intro { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 72px); left: 0; right: 0; display: grid; gap: 6px; pointer-events: none }
+.intro p { margin: 0; font-size: clamp(18px, 1.6vw, 22px); font-weight: 500; letter-spacing: -.01em; max-width: 34ch; text-wrap: balance }
+.floorlabs { position: absolute; left: 0; right: 0; top: calc(86% + 12px); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; align-items: baseline }
+@media (max-width: 640px) { .floorlabs { top: calc(82% + 10px) } }
+.floorlabs .right { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline }
+.linkbtn { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px }
+#type { position: absolute; left: 16px; top: 40%; width: 1px; height: 1px; opacity: 0; font-size: 16px; resize: none; border: 0; padding: 0; caret-color: transparent; color: transparent; background: transparent }
+
+/* Sections */
+.sec { padding-block: 150px 0 }
+@media (max-width: 640px) { .sec { padding-block: 88px 0 } }
+.wrap { max-width: 1240px; margin: 0 auto }
+canvas.lh { display: block; width: 100%; margin: 0 0 18px }
+.lede { margin: 0 0 36px; max-width: 60ch; color: var(--muted) }
+.find { margin: 0 0 28px; font-weight: 500 }
+
+/* Wear map */
+.map { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start }
+@media (max-width: 900px) { .map { grid-template-columns: minmax(0, 1fr) } }
+.kb { display: grid; grid-template-columns: repeat(20, minmax(0, 1fr)); gap: 6px; min-width: 0 }
+.key { appearance: none; position: relative; aspect-ratio: 1 / 1.08; min-width: 0; padding: 0; background: var(--key); border: 1px solid var(--rule); border-radius: 7px; cursor: pointer; color: var(--muted) }
+.key canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+.key .n { position: absolute; right: 6px; bottom: 4px; font: 400 10px var(--ui); font-variant-numeric: tabular-nums }
+@media (max-width: 640px) { .key .n { display: none } .kb { gap: 4px } .key { border-radius: 5px } }
+.key[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink) }
+.panel { display: grid; gap: 14px; min-width: 0 }
+.panel canvas { width: 100%; max-width: 100%; aspect-ratio: 1 / 1.05; background: var(--key); border: 1px solid var(--rule); border-radius: 10px }
+@media (max-width: 900px) { .panel { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); align-items: center } .panel canvas { grid-row: span 3 } }
+.panel .big { font: 500 28px var(--ui); letter-spacing: -.02em }
+.panel .rows { display: grid; gap: 4px }
+.check { display: flex; gap: 8px; align-items: center; cursor: pointer }
+.check input { accent-color: var(--now); width: 16px; height: 16px; margin: 0 }
+
+/* Ten years */
+.sim { position: relative; height: clamp(260px, 38vw, 460px); border-top: 1px solid var(--rule) }
+.sim canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+.simctl { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; margin: 18px 0 14px }
+.simctl .left { display: flex; flex-wrap: wrap; gap: 12px; align-items: center }
+.readout { font: 500 clamp(22px, 2.4vw, 30px) var(--ui); font-variant-numeric: tabular-nums; letter-spacing: -.02em }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; overflow: hidden }
+.seg button, .play { appearance: none; border: 0; background: transparent; color: var(--muted); font: 500 12px var(--ui); letter-spacing: .06em; padding: 8px 14px; cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--ground) }
+.play { border: 1px solid var(--rule); border-radius: 999px; color: var(--ink) }
+.scrub { position: relative; height: 72px }
+.scrub canvas { position: absolute; inset: 0; width: 100%; height: 100% }
+.scrub input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; background: transparent; -webkit-appearance: none; appearance: none; cursor: ew-resize }
+.scrub input::-webkit-slider-runnable-track { height: 100%; background: transparent }
+.scrub input::-webkit-slider-thumb { -webkit-appearance: none; width: 26px; height: 26px; margin-top: 23px; border-radius: 50%; background: var(--now); border: 4px solid var(--ground); box-shadow: 0 0 0 1px var(--now) }
+.scrub input::-moz-range-track { background: transparent }
+.scrub input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--now); border: 4px solid var(--ground); box-shadow: 0 0 0 1px var(--now) }
+.ticks { position: relative; height: 18px; margin-top: 6px }
+.ticks span { position: absolute; transform: translateX(-50%) }
+.ticks span:first-child { transform: none }
+.ticks span:last-child { transform: translateX(-100%) }
+.caption { margin: 22px 0 0; max-width: 60ch }
+
+/* Lineage */
+.lin { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px }
+@media (max-width: 820px) { .lin { grid-template-columns: minmax(0, 1fr) } }
+.lin article { display: grid; gap: 10px; align-content: start; min-width: 0 }
+.lin canvas { width: 100%; max-width: 260px; aspect-ratio: 1 / 1 }
+.lin h3 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -.01em }
+.lin p { margin: 0; color: var(--muted); font-size: 16px }
+.credit { margin: 40px 0 0; font-size: 15px; color: var(--muted); max-width: 70ch }
+
+footer { margin-top: 150px; border-top: 1px solid var(--rule); padding-block: 22px 40px; display: flex; flex-wrap: wrap; gap: 10px 28px; justify-content: space-between }
+footer .links { display: flex; gap: 22px }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
 </style>
 
-<div class="wrap">
-  <header>
-    <h1>Lowie Worn <span>· a typeface with memory</span></h1>
-    <span class="tag">Lowie Poke 0.7 · prototype</span>
-  </header>
-  <p class="lede">Every letter is a sort. Each time anyone types it here, it wears a little: the hand-poked dots on its edges and joins go first, like a key worn smooth or a tattoo fading. Everyone who opens this page wears down the same font.</p>
+<header class="bar gut">
+  <a class="brand" href="#top">Lowie Worn</a>
+  <nav class="lab" aria-label="Sections">
+    <a href="#map">Wear map</a>
+    <a href="#years">Ten years</a>
+    <a href="#lineage">Lineage</a>
+    <a class="get" href="https://github.com/ben-southpaw/lowie" target="_blank" rel="noopener">Get Lowie</a>
+  </nav>
+</header>
 
-  <div class="pad">
-    <div id="loading">Loading Lowie…</div>
-    <canvas id="padCanvas" aria-label="Your text, set in Lowie at its current wear"></canvas>
-    <div class="inputrow">
-      <label class="small" for="typed">Type</label>
-      <input id="typed" type="text" autocomplete="off" spellcheck="false" value="minimum wear, maximum memory">
+<main>
+  <section class="hero" id="top" aria-label="Type on Lowie">
+    <canvas id="heroPile" aria-hidden="true"></canvas>
+    <canvas id="heroCv" role="img" aria-label="Your text set in Lowie, at the shared font's current wear"></canvas>
+    <div class="intro gut">
+      <h1 class="sr">Lowie Worn</h1>
+      <p>One font. Everyone types on it. Each letter you type knocks dots out of it, for everybody. They don't grow back.</p>
+      <span class="lab" id="hint">Click anywhere and type</span>
     </div>
-    <div class="status" id="status"></div>
-  </div>
+    <div class="floorlabs gut">
+      <span class="lab">Lowie · hand-poke serif · OFL</span>
+      <span class="right"><span class="lab" id="stats">Loading Lowie…</span><button class="lab linkbtn" id="sweep" type="button">Sweep</button></span>
+    </div>
+    <textarea id="type" maxlength="140" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type on Lowie">Lowie</textarea>
+    <div class="sr" aria-live="polite" id="live"></div>
+  </section>
 
-  <section>
-    <div class="casehead">
-      <h2>The type case</h2>
-      <div class="seg" role="group" aria-label="Whose wear to show">
-        <button id="viewAll" type="button" aria-pressed="true">Everyone</button>
-        <button id="viewMe" type="button" aria-pressed="false">Just you</button>
+  <section class="sec gut" id="map" aria-labelledby="mapH">
+    <div class="wrap">
+      <h2 class="sr" id="mapH">The wear map</h2>
+      <canvas class="lh" data-text="The wear map" aria-hidden="true"></canvas>
+      <p class="lede">Every key shows its letter as the shared font has it now. Nothing here is a colour scale: the missing dots are the data.</p>
+      <p class="find" id="find"></p>
+      <div class="map">
+        <div class="kb" id="kb" role="group" aria-label="Keyboard of worn letters"></div>
+        <div class="panel" aria-live="polite">
+          <canvas id="detail" aria-hidden="true"></canvas>
+          <div class="big" id="dLetter">e</div>
+          <div class="rows">
+            <span class="lab" id="dDots"></span>
+            <span class="lab" id="dPresses"></span>
+            <span class="lab" id="dPct"></span>
+          </div>
+          <label class="check lab" for="ghost"><input type="checkbox" id="ghost"> Show lost dots</label>
+        </div>
       </div>
-    </div>
-    <p class="note" id="caseNote">Presses per letter from everyone who has typed here, and what that has done to each sort. Capitals and accented letters share their base letter's wear, as on a keyboard.</p>
-    <div class="case" id="case"></div>
-    <div class="controls">
-      <span id="simControls" class="controls" hidden>
-        <button class="primary" id="yearEn" type="button">Add a year of English</button>
-        <button id="yearNl" type="button">Add a year of Dutch</button>
-        <button id="reset" type="button">Reset your case</button>
-      </span>
-      <span class="status" id="caseStatus"></span>
     </div>
   </section>
 
-  <div class="notes">
-    <div><h3>How the wear works</h3><p>Each dot in a glyph has its own breaking point, set by a seeded random number and by how exposed it is: dots on the outer edge and in the joins break first. A dot shrinks before it drops out. Wear for a letter follows presses ÷ (presses + 100).</p></div>
-    <div><h3>Everyone, or just you</h3><p>Everyone shows the shared font: real keystrokes from every visitor, summed. Just you is your own case, kept in this browser, where you can also add simulated years of English or Dutch. Dutch hits e much harder (about 19% of letters) and wears n, v, j and z far faster than English.</p></div>
-    <div><h3>Prior art</h3><p>Memoire (Michelle Ando and Ryan Bugden, 2016) wore down across a printed issue, from drawn start and end states. Koruption and Hel have destruction axes. Lowie Worn differs in one way: each letter wears from its own use, live.</p></div>
-    <div><h3>About Lowie</h3><p>A connected hand-poke serif, open source under the SIL OFL. <a href="https://github.com/ben-southpaw/lowie" target="_blank" rel="noopener">GitHub</a> · <a href="https://ben-southpaw.github.io/lowie/" target="_blank" rel="noopener">specimen</a>. The joins here are Lowie's own: high from b, o, r, v, w, low from the rest.</p></div>
-  </div>
-</div>
+  <section class="sec gut" id="years" aria-labelledby="yearsH">
+    <div class="wrap">
+      <h2 class="sr" id="yearsH">Ten years on</h2>
+      <canvas class="lh" data-text="Ten years on" aria-hidden="true"></canvas>
+      <p class="lede">Your keyboard, simulated. Drag through 25 years of typing in English or Dutch and watch which letters go first. Nothing here touches the shared font.</p>
+      <div class="sim" id="sim">
+        <canvas id="simPile" aria-hidden="true"></canvas>
+        <canvas id="simCv" role="img" aria-label="A pangram set in Lowie at the simulated wear"></canvas>
+      </div>
+      <div class="simctl">
+        <div class="left">
+          <div class="seg" role="group" aria-label="Language">
+            <button type="button" id="langEn" aria-pressed="true">EN</button>
+            <button type="button" id="langNl" aria-pressed="false">NL</button>
+          </div>
+          <button type="button" class="play" id="play">Play 10 years</button>
+        </div>
+        <span class="readout" id="readout">10.0 years</span>
+      </div>
+      <div class="scrub">
+        <canvas id="spark" aria-hidden="true"></canvas>
+        <input type="range" id="yr" min="0" max="1000" value="736" aria-label="Years of typing">
+      </div>
+      <div class="ticks lab" id="ticks"></div>
+      <p class="caption" id="caption"></p>
+    </div>
+  </section>
+
+  <section class="sec gut" id="lineage" aria-labelledby="linH">
+    <div class="wrap">
+      <h2 class="sr" id="linH">Where wear comes from</h2>
+      <canvas class="lh" data-text="Where wear comes from" aria-hidden="true"></canvas>
+      <div class="lin">
+        <article><canvas data-letter="a" data-wear="0.1" aria-hidden="true"></canvas><h3>Sorts</h3><p>A metal letter wears each time it meets paper. The letters set most wore out first, and printers bought more of them. Edges and fine joins went before anything else.</p></article>
+        <article><canvas data-letter="e" data-wear="0.4" aria-hidden="true"></canvas><h3>Keys</h3><p>A keyboard keeps a record of its owner. The e, the a and the space bar go shiny first. Nobody chooses the pattern. The language does.</p></article>
+        <article><canvas data-letter="o" data-wear="0.66" aria-hidden="true"></canvas><h3>Skin</h3><p>Hand-poked ink spreads and fades as skin renews. Loose dots go first and dense patches last longest. Lowie is drawn from those dots, so it wears the same way.</p></article>
+      </div>
+      <p class="credit">Related work: Memoire by Michelle Ando and Ryan Bugden (2016) degraded across a printed issue from drawn start and end states. Koruption and Hel erode along a variable axis. Lowie Worn wears each letter from its own use, live, and shared.</p>
+    </div>
+  </section>
+
+  <footer class="gut lab">
+    <span>Lowie · SIL Open Font License · made in Amsterdam by Ben Dryden</span>
+    <span class="links"><a href="https://github.com/ben-southpaw/lowie" target="_blank" rel="noopener">GitHub</a><a href="https://ben-southpaw.github.io/lowie/" target="_blank" rel="noopener">Specimen</a></span>
+  </footer>
+</main>
 
 <script src="shaper.js"></script>
 <script>
 (function () {
-  const H = 100;                         // presses at which a sort is half worn
-  const STORE = "lowie-worn-counts-v1";
+  const H = 60;              // presses at which a letter is half worn
+  const YEAR = 60;           // simulated presses per year, per 100% of letter frequency
+  const G = 2400;            // gravity, px per second squared
   const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+  const ROWS = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
   const FREQ = {
     en: {e:12.7,t:9.1,a:8.2,o:7.5,i:7.0,n:6.7,s:6.3,h:6.1,r:6.0,d:4.3,l:4.0,c:2.8,u:2.8,m:2.4,w:2.4,f:2.2,g:2.0,y:2.0,p:1.9,b:1.5,v:1.0,k:0.8,j:0.15,x:0.15,q:0.1,z:0.07},
     nl: {e:18.9,n:10.0,a:7.5,t:6.8,i:6.5,r:6.4,o:6.1,d:5.9,s:3.7,l:3.6,g:3.4,v:2.9,h:2.4,k:2.3,m:2.2,u:2.0,b:1.6,p:1.6,w:1.5,j:1.5,z:1.4,c:1.2,f:0.8,x:0.04,y:0.04,q:0.01}
   };
-  const YEAR = 600;                     // presses per 100% of letter frequency in a simulated year
-
-  let font, shape, counts = {}, prevText = "";
-  // Shared case: every visitor's real keystrokes, one db document per person, summed here.
-  let shared = null, people = 0, mine = {}, view = "me", viewTouched = false;
-  let db = null, uid = null, writeTimer = null, writing = false, dirty = false;
-  const cur = () => (view === "all" && shared) ? shared : counts;
+  const PANGRAM = { en: "The quick brown fox jumps over the lazy dog", nl: "Pa's wijze lynx bezag vroom het fikse aquaduct" };
+  const STORE = "lowie-worn-local-v2";
+  const MARKS = new RegExp("[" + String.fromCharCode(0x300) + "-" + String.fromCharCode(0x36f) + "]", "g");
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const $ = id => document.getElementById(id);
+  const keyOf = ch => ch.normalize("NFD").replace(MARKS, "").toLowerCase();
+  const wearOf = c => c > 0 ? c / (c + H) : 0;
+  const fmt = n => Math.round(n).toLocaleString("en-GB");
+  const yearsAt = t => Math.pow(26, t) - 1;           // log scale: 0 to 25 years
+  const tAt = y => Math.log(y + 1) / Math.log(26);
 
-  function load() { try { const v = JSON.parse(localStorage.getItem(STORE)); return v && typeof v === "object" ? v : null } catch (e) { return null } }
-  function save() { try { localStorage.setItem(STORE, JSON.stringify(counts)) } catch (e) {} }
+  let font, shape, C = {};
+  function hexToRgb(h) { h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(c => c + c).join(""); const n = parseInt(h, 16); return [n >> 16 & 255, n >> 8 & 255, n & 255] }
+  function readColors() { const cs = getComputedStyle(document.documentElement); ["ink", "aged", "now", "rule", "muted", "key", "ground"].forEach(k => { C[k] = hexToRgb(cs.getPropertyValue("--" + k).trim() || "#000") }) }
+  const rgb = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+  const mix = (a, b, t) => `rgb(${Math.round(a[0] + (b[0] - a[0]) * t)},${Math.round(a[1] + (b[1] - a[1]) * t)},${Math.round(a[2] + (b[2] - a[2]) * t)})`;
 
-  const keyOf = ch => ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const wearOf = k => { const c = cur()[k] || 0; return c / (c + H) };
-
-  // Seeded randomness per glyph form and dot index, so wear is the same on every visit.
+  // Seeded randomness per glyph form and dot, so every visitor sees the same dots go in the same order.
   function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) } return h >>> 0 }
   function rand(seed) { let t = seed + 0x6D2B79F5; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296 }
 
-  // Build each glyph's dots once: a Path2D in font units plus its centre and breaking point.
+  // Each contour of a glyph is one hand-poked dot, or a blob of touching dots.
+  // theta is the wear at which it breaks off: loose, exposed dots early, merged blobs late.
   const cache = new Map();
   function dotsFor(name) {
     if (cache.has(name)) return cache.get(name);
-    const g = font.glyphs[name]; const out = [];
-    if (!g) { cache.set(name, out); return out }
+    const g = font.glyphs[name], out = [];
+    if (!g || !g.d.length) { cache.set(name, out); return out }
     const raw = g.d.map(arr => {
-      // Delta-encoded: x0, y0, on0, then (dx * 2 + on), dy per point (see export_wear.py).
-      const pts = [[arr[0], arr[1], arr[2]]];
-      let x = arr[0], y = arr[1];
-      for (let i = 3; i < arr.length; i += 2) {
-        const v = arr[i], on = ((v % 2) + 2) % 2;
-        x += (v - on) / 2; y += arr[i + 1];
-        pts.push([x, y, on]);
-      }
+      const pts = [[arr[0], arr[1], arr[2]]]; let x = arr[0], y = arr[1];
+      for (let i = 3; i < arr.length; i += 2) { const v = arr[i], on = ((v % 2) + 2) % 2; x += (v - on) / 2; y += arr[i + 1]; pts.push([x, y, on]) }
       let cx = 0, cy = 0; pts.forEach(p => { cx += p[0]; cy += p[1] }); cx /= pts.length; cy /= pts.length;
-      return { pts, cx, cy };
+      let r = 0; pts.forEach(p => { r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cy)) });
+      return { pts, cx, cy, r };
     });
-    if (!raw.length) { cache.set(name, out); return out }
     let gx = 0, gy = 0; raw.forEach(d => { gx += d.cx; gy += d.cy }); gx /= raw.length; gy /= raw.length;
     let maxD = 1; raw.forEach(d => { maxD = Math.max(maxD, Math.hypot(d.cx - gx, d.cy - gy)) });
     const base = hash(name);
     raw.forEach((d, i) => {
-      const edge = Math.hypot(d.cx - gx, d.cy - gy) / maxD;      // 0 centre, 1 outer edge
-      const r = rand(base + i * 7919);
-      // Touching dots are merged into one large contour. Those blobs are the letter's core:
-      // they last longest and fade rather than shrink. Loose grains break first.
-      const big = d.pts.length > 40;
-      const theta = big ? 0.45 + 0.6 * r : 0.12 + 0.95 * (0.55 * r + 0.45 * (1 - edge));
-      out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, theta, big });
+      const edge = Math.hypot(d.cx - gx, d.cy - gy) / maxD, rr = rand(base + i * 7919);
+      d.big = d.pts.length > 40;
+      d.theta = 0.45 + 0.6 * rr;                         // merged blobs hold the letter's shape longest
+      d.score = 0.55 * rr + 0.45 * (1 - edge);           // loose dots: outer ones first, with some luck
     });
+    // Loose dots break off in rank order, so the first press of a letter always loses a few.
+    const small = raw.filter(d => !d.big).sort((a, b) => a.score - b.score);
+    small.forEach((d, i) => { d.theta = 1.1 * Math.pow((i + 0.5) / small.length, 1.8) });
+    raw.forEach(d => out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, r: d.r, theta: d.theta }));
     cache.set(name, out); return out;
   }
-  // TrueType quadratic contour to Path2D, relative to the dot centre so it can shrink in place.
   function toPath(pts, cx, cy) {
-    const p = new Path2D(); const n = pts.length;
-    const P = i => pts[(i + n) % n];
+    const p = new Path2D(), n = pts.length, P = i => pts[(i + n) % n];
     const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     let s = 0; while (s < n && !pts[s][2]) s++;
-    let start = s < n ? P(s) : mid(P(0), P(1));
-    if (s === n) s = 0;
+    const start = s < n ? P(s) : mid(P(0), P(1)); if (s === n) s = 0;
     p.moveTo(start[0] - cx, -(start[1] - cy));
     for (let k = 1; k <= n; k++) {
       const cur = P(s + k);
       if (cur[2]) { p.lineTo(cur[0] - cx, -(cur[1] - cy)); continue }
-      const nxt = P(s + k + 1);
-      const end = nxt[2] ? nxt : mid(cur, nxt);
+      const nxt = P(s + k + 1), end = nxt[2] ? nxt : mid(cur, nxt);
       p.quadraticCurveTo(cur[0] - cx, -(cur[1] - cy), end[0] - cx, -(end[1] - cy));
       if (nxt[2]) k++;
     }
     p.closePath(); return p;
   }
 
-  function drawGlyph(ctx, name, x, y, scale, wear) {
-    for (const d of dotsFor(name)) {
-      const s = Math.max(0, Math.min(1, (d.theta - wear) / 0.12));
-      if (s <= 0.02) continue;
-      ctx.save();
-      ctx.translate(x + d.cx * scale, y - d.cy * scale);
-      const k = d.big ? 1 : s;
-      ctx.scale(scale * k, scale * k);
-      ctx.globalAlpha = d.big ? s : 0.55 + 0.45 * s;
-      ctx.fill(d.path);
-      ctx.restore();
+  function paintGlyph(ctx, dpr, name, x, y, scale, wear, fill, jitter, ghost) {
+    const k = scale * dpr;
+    if (ghost) {
+      ctx.fillStyle = rgb(C.aged); ctx.globalAlpha = 0.16;
+      for (const d of dotsFor(name)) { if (wear < d.theta) continue; ctx.setTransform(k, 0, 0, k, (x + d.cx * scale) * dpr, (y - d.cy * scale) * dpr); ctx.fill(d.path) }
     }
+    ctx.fillStyle = fill;
+    for (const d of dotsFor(name)) {
+      if (wear >= d.theta) continue;
+      const loose = d.theta - wear < 0.06;
+      ctx.globalAlpha = loose ? 0.6 : 1;
+      let ox = 0, oy = 0; if (loose && jitter) { ox = (Math.random() - .5) * 2.4; oy = (Math.random() - .5) * 2.4 }
+      ctx.setTransform(k, 0, 0, k, (x + d.cx * scale + ox) * dpr, (y - d.cy * scale + oy) * dpr);
+      ctx.fill(d.path);
+    }
+    ctx.globalAlpha = 1; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-
-  function renderPad() {
-    const cv = $("padCanvas"); const w = cv.clientWidth; if (!w) return;
-    const size = w < 520 ? 52 : w < 800 ? 76 : 96;
-    const scale = size / font.upm, lineH = size * 1.3;
-    const words = ($("typed").value || " ").split(/(\s+)/);
-    // Shape the full line, then wrap at spaces by measured advance.
-    const glyphs = shape($("typed").value);
-    const lines = [[]]; let lx = 0, word = [], wx = 0;
+  function wrapText(text, size, W) {
+    const scale = size / font.upm, glyphs = shape(text), lines = [[]];
+    let lx = 0, word = [], wx = 0;
+    const cur = () => lines[lines.length - 1];
     const flush = () => {
-      if (lx + wx > w && lines[lines.length - 1].length) { lines.push([]); lx = 0 }
-      word.forEach(g => lines[lines.length - 1].push(g)); lx += wx; word = []; wx = 0;
+      if (lx + wx > W && cur().length) { lines.push([]); lx = 0 }
+      for (const g of word) { if (wx > W && lx + g.adv > W && cur().length) { lines.push([]); lx = 0 } cur().push(g); lx += g.adv }
+      word = []; wx = 0;
     };
     for (const g of glyphs) {
-      const adv = (g.glyph && font.glyphs[g.glyph] ? font.glyphs[g.glyph].a : font.upm * 0.3) * scale;
-      word.push(Object.assign({ adv }, g)); wx += adv;
+      const gl = g.glyph && font.glyphs[g.glyph];
+      const adv = (gl ? gl.a : font.upm * 0.3) * scale;
+      word.push({ glyph: gl ? g.glyph : null, ch: g.ch, key: keyOf(g.ch), adv }); wx += adv;
       if (g.ch === " ") flush();
     }
     flush();
-    const dpr = window.devicePixelRatio || 1;
-    const h = Math.max(lineH * lines.length + size * 0.35, 120);
-    cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-    const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = css("--ink");
-    lines.forEach((line, li) => {
-      let x = 0; const y = size * 1.0 + li * lineH;
-      for (const g of line) { if (g.glyph) drawGlyph(ctx, g.glyph, x, y, scale, wearOf(keyOf(g.ch))); x += g.adv }
-    });
+    return lines;
   }
 
-  function buildCase() {
-    const box = $("case"); box.innerHTML = "";
-    LETTERS.forEach(L => {
-      const el = document.createElement("div"); el.className = "sort";
-      el.innerHTML = `<canvas data-l="${L}" aria-label="Sort ${L}"></canvas><span class="n" data-n="${L}"></span><span class="w"><i data-w="${L}"></i></span>`;
-      box.appendChild(el);
-    });
-  }
-  function renderCase() {
-    const ink = css("--ink"); const dpr = window.devicePixelRatio || 1;
-    document.querySelectorAll(".sort canvas").forEach(cv => {
-      const L = cv.dataset.l, w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
-      cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-      const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.fillStyle = ink;
-      const name = font.cmap[L]; const g = font.glyphs[name]; const scale = (w * 0.95) / font.upm;
-      drawGlyph(ctx, name, (w - g.a * scale) / 2, h * 0.74, scale, wearOf(L));
-    });
-    const C = cur();
-    LETTERS.forEach(L => {
-      const c = C[L] || 0, wr = wearOf(L);
-      document.querySelector(`[data-n="${L}"]`).textContent = c >= 10000 ? Math.round(c / 1000) + "k" : c;
-      document.querySelector(`[data-w="${L}"]`).style.width = Math.round(wr * 100) + "%";
-    });
-    const worst = LETTERS.slice().sort((a, b) => (C[b] || 0) - (C[a] || 0))[0];
-    const total = LETTERS.reduce((s, L) => s + (C[L] || 0), 0);
-    const who = view === "all" ? `${people} ${people === 1 ? "person" : "people"} · ` : "";
-    $("caseStatus").textContent = total ? `${who}${total.toLocaleString("en-GB")} presses · most worn: ${worst} (${Math.round(wearOf(worst) * 100)}%)`
-      : (view === "all" ? "Nobody has typed here yet. Your keystrokes will be the first wear." : "All sorts new.");
-  }
-  function renderAll() { renderPad(); renderCase() }
-
-  function addYear(lang) {
-    const f = FREQ[lang];
-    LETTERS.forEach(L => { counts[L] = (counts[L] || 0) + Math.round((f[L] || 0) / 100 * YEAR * 10) / 10 });
-    LETTERS.forEach(L => { counts[L] = Math.round(counts[L]) });
-    save(); renderAll();
-    $("status").textContent = lang === "en" ? "Added a year of English typing." : "Added a year of Dutch typing.";
-  }
-
-  function onInput() {
-    const now = $("typed").value;
-    // Count only characters added since the last input event; deleting never un-wears a sort.
-    let i = 0; while (i < prevText.length && i < now.length && prevText[i] === now[i]) i++;
-    let j = 0; while (j < prevText.length - i && j < now.length - i && prevText[prevText.length - 1 - j] === now[now.length - 1 - j]) j++;
-    const added = now.slice(i, now.length - j);
-    let n = 0;
-    for (const ch of added) {
-      const k = keyOf(ch); if (!LETTERS.includes(k)) continue;
-      counts[k] = (counts[k] || 0) + 1; n++;
-      if (db && uid && shared) { mine[k] = (mine[k] || 0) + 1; shared[k] = (shared[k] || 0) + 1 }
+  // A stage: text standing on a floor, and the dots that fall off it.
+  class Stage {
+    constructor(o) { Object.assign(this, o); this.ctx = this.cv.getContext("2d"); this.pctx = this.pv.getContext("2d"); this.parts = []; this.w = {}; this.jit = {}; this.glyphs = []; this.text = ""; this.dirty = true; this.showCaret = false }
+    resize() {
+      const w = this.cv.clientWidth, h = this.cv.clientHeight; if (!w || !h) return;
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      this.W = w; this.H = h; this.dpr = dpr; this.gut = w < 640 ? 16 : 40;
+      for (const c of [this.cv, this.pv]) { c.width = Math.round(w * dpr); c.height = Math.round(h * dpr) }
+      this.pctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      this.heights = new Float32Array(Math.ceil(w / 2) + 2);
+      this.floorY = h * (w < 640 ? this.floorSmall : this.floorFrac);
+      this.cap = w < 640 ? 300 : 500;
+      this.layout(); this.dirty = true;
     }
-    prevText = now;
-    if (n) {
-      save(); if (db && uid && shared) scheduleWrite();
-      $("status").textContent = `${n} press${n > 1 ? "es" : ""} added` + (db && uid && shared ? " to the shared font." : ".");
+    setText(t) { this.text = t; this.layout(); this.dirty = true }
+    layout() {
+      if (!font || !this.W) return;
+      const W = this.W - this.gut * 2, top = this.top(this.W), avail = this.floorY - top - 12;
+      const min = this.W < 640 ? this.minSmall : this.minSize;
+      let size = this.sizeFor(this.W, avail), lines;
+      for (;;) {
+        lines = wrapText(this.text || " ", size, W);
+        if ((lines.length <= this.maxLines && lines.length * size * 1.12 <= avail) || size <= min) break;
+        size = Math.max(min, size * 0.92);
+      }
+      this.size = size; this.scale = size / font.upm;
+      const lh = size * 1.12, blockH = lines.length * lh;
+      const y0 = top + Math.max(0, (avail - blockH) * this.valign);
+      this.glyphs = []; this.endX = this.gut; this.endY = y0 + size * 0.9;
+      lines.forEach((line, i) => {
+        let x = this.gut; const y = y0 + size * 0.9 + i * lh;
+        for (const g of line) { this.glyphs.push(Object.assign({ x, y }, g)); x += g.adv }
+        this.endX = x; this.endY = y;
+      });
     }
-    renderAll();
+    setWear(L, nw, how) {
+      const ow = this.w[L] || 0; this.w[L] = nw;
+      if (nw > ow && how && !reduce) for (const g of this.glyphs) {
+        if (g.key !== L || !g.glyph) continue;
+        for (const d of dotsFor(g.glyph)) if (ow < d.theta && nw >= d.theta) this.spawn(g, d, how === "remote");
+      }
+      this.dirty = true;
+    }
+    spawn(g, d, remote) {
+      if (this.parts.length >= this.cap) return;
+      const s = this.scale;
+      this.parts.push({ x: g.x + d.cx * s, y: g.y - d.cy * s, vx: (Math.random() - .5) * 90, vy: -Math.random() * 160, rot: 0, vr: (Math.random() - .5) * 8, path: d.path, s, r: Math.max(1, d.r * s), remote, born: performance.now() });
+    }
+    grains(L, n) {
+      if (reduce) return;
+      const inst = this.glyphs.filter(g => g.key === L && g.glyph), w = this.w[L] || 0;
+      for (let i = 0; i < n && this.parts.length < this.cap; i++) {
+        let x = this.endX, y = this.endY - this.size * 0.3;
+        if (inst.length) {
+          const g = inst[Math.floor(Math.random() * inst.length)];
+          const ds = dotsFor(g.glyph).filter(d => d.theta > w);
+          if (ds.length) { const d = ds[Math.floor(Math.random() * ds.length)]; x = g.x + d.cx * this.scale; y = g.y - d.cy * this.scale }
+        }
+        this.parts.push({ x, y, vx: (Math.random() - .5) * 140, vy: -60 - Math.random() * 200, rot: 0, vr: 0, path: null, s: 1, r: Math.max(0.9, this.size * 0.006), remote: false, born: performance.now() });
+      }
+    }
+    step(dt) {
+      const keep = [];
+      for (const p of this.parts) {
+        p.vy += G * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+        if (p.x < -60 || p.x > this.W + 60) continue;
+        const col = Math.max(0, Math.min(this.heights.length - 1, Math.floor(p.x / 2)));
+        const ground = this.floorY - this.heights[col];
+        if (p.y + p.r * 0.6 >= ground) {
+          p.y = ground - p.r * 0.6;
+          if (p.vy > 180) { p.vy = -p.vy * 0.2; p.vx *= 0.5; p.vr *= 0.5 } else { this.bake(p); continue }
+        }
+        keep.push(p);
+      }
+      this.parts = keep; this.dirty = true;
+    }
+    paintPart(c, p, fill) {
+      const dpr = this.dpr; c.fillStyle = fill;
+      if (p.path) { const k = p.s * dpr, cs = Math.cos(p.rot) * k, sn = Math.sin(p.rot) * k; c.setTransform(cs, sn, -sn, cs, p.x * dpr, p.y * dpr); c.fill(p.path); c.setTransform(dpr, 0, 0, dpr, 0, 0) }
+      else { c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI * 2); c.fill() }
+    }
+    bake(p) {
+      this.paintPart(this.pctx, p, rgb(C.aged));
+      const a = Math.max(0, Math.floor((p.x - p.r) / 2)), b = Math.min(this.heights.length - 1, Math.ceil((p.x + p.r) / 2));
+      const lim = this.floorY * 0.18;
+      for (let i = a; i <= b; i++) this.heights[i] = Math.min(lim, this.heights[i] + p.r * 0.55);
+    }
+    sweep() {
+      this.pctx.save(); this.pctx.setTransform(1, 0, 0, 1, 0, 0); this.pctx.clearRect(0, 0, this.pv.width, this.pv.height); this.pctx.restore();
+      if (this.heights) this.heights.fill(0); this.parts = []; this.dirty = true;
+    }
+    draw(now) {
+      const c = this.ctx, dpr = this.dpr; if (!dpr) return;
+      c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, this.cv.width, this.cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c.fillStyle = rgb(C.rule); c.fillRect(0, Math.round(this.floorY), this.W, 1);
+      for (const g of this.glyphs) {
+        if (!g.glyph) continue;
+        const w = this.w[g.key] || 0;
+        paintGlyph(c, dpr, g.glyph, g.x, g.y, this.scale, w, mix(C.ink, C.aged, Math.min(1, w * 0.9)), (this.jit[g.key] || 0) > now, false);
+      }
+      for (const p of this.parts) {
+        const age = (now - p.born) / (p.remote ? 600 : 900);
+        this.paintPart(c, p, mix(p.remote ? C.now : C.ink, C.aged, Math.min(1, age)));
+      }
+      if (this.caret && this.showCaret) {
+        const r = Math.max(2, this.size * 0.03); c.fillStyle = rgb(C.now);
+        for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(this.endX + r * 2.4, this.endY - r - i * r * 3.1, r, 0, Math.PI * 2); c.fill() }
+      }
+      this.dirty = false;
+    }
   }
 
-  function setView(v) {
-    view = v;
-    $("viewAll").setAttribute("aria-pressed", String(v === "all"));
-    $("viewMe").setAttribute("aria-pressed", String(v === "me"));
-    $("simControls").hidden = v !== "me";
-    $("caseNote").textContent = v === "all"
-      ? "Presses per letter from everyone who has typed here, and what that has done to each sort. Capitals and accented letters share their base letter's wear, as on a keyboard."
-      : "Your own case, kept in this browser. Add simulated years to see where wear goes. Simulated presses never reach the shared font.";
-    if (font) renderAll();
+  const hero = new Stage({ cv: $("heroCv"), pv: $("heroPile"), floorFrac: 0.86, floorSmall: 0.82, maxLines: 3, minSize: 64, minSmall: 44, valign: 0.55, caret: true,
+    top: w => w < 640 ? 150 : 170, sizeFor: (w, avail) => Math.min(w * (w < 640 ? 0.33 : 0.26), avail * 0.9) });
+  const sim = new Stage({ cv: $("simCv"), pv: $("simPile"), floorFrac: 0.86, floorSmall: 0.86, maxLines: 3, minSize: 30, minSmall: 22, valign: 0.5, caret: false,
+    top: () => 20, sizeFor: (w, avail) => Math.min(w * 0.095, avail * 0.6) });
+  const stages = [hero, sim];
+
+  // ---------- Shared counts ----------
+  let heroCounts = {}, target = {}, replay = null, mode = "loading", people = 0;
+  let db = null, uid = null, mine = {}, writeTimer = null, writing = false, dirtyWrite = false;
+  let local = {}; try { const v = JSON.parse(localStorage.getItem(STORE)); if (v && typeof v === "object") local = v } catch (e) {}
+  const saveLocal = () => { try { localStorage.setItem(STORE, JSON.stringify(local)) } catch (e) {} };
+  let totalDots = 0, mapDirty = true;
+
+  function clean(obj) { const out = {}; if (!obj || typeof obj !== "object") return out; LETTERS.forEach(L => { const v = Number(obj[L]); if (Number.isFinite(v) && v > 0) out[L] = Math.min(Math.floor(v), 1e6) }); return out }
+  function dotsLost(wmap) { let n = 0; LETTERS.forEach(L => { const w = wmap[L] || 0; for (const d of dotsFor(font.cmap[L])) if (w >= d.theta) n++ }); return n }
+
+  function updateStats() {
+    if (!font) return;
+    const presses = LETTERS.reduce((s, L) => s + (heroCounts[L] || 0), 0);
+    const who = mode === "shared" ? `${people} ${people === 1 ? "typist" : "typists"}` : "this browser only";
+    $("stats").textContent = `${fmt(presses)} presses · ${fmt(dotsLost(hero.w))} of ${fmt(totalDots)} dots gone · ${who}`;
   }
 
-  // Untrusted rows: keep only a to z with sane non-negative numbers.
-  function clean(obj) {
-    const out = {}; if (!obj || typeof obj !== "object") return out;
-    LETTERS.forEach(L => { const v = Number(obj[L]); if (Number.isFinite(v) && v > 0) out[L] = Math.min(Math.floor(v), 1e6) });
-    return out;
+  function startReplay(counts) {
+    target = Object.assign({}, counts);
+    if (reduce) { finishReplay(); return }
+    replay = { t0: performance.now() };
+  }
+  function finishReplay() {
+    LETTERS.forEach(L => hero.setWear(L, wearOf(target[L] || 0), null));
+    heroCounts = Object.assign({}, target); replay = null; updateStats(); mapDirty = true;
+  }
+  function stepReplay(now) {
+    const t = Math.min(1, (now - replay.t0) / 2400), e = t * t;
+    LETTERS.forEach(L => hero.setWear(L, wearOf(target[L] || 0) * e, "local"));
+    LETTERS.forEach(L => { heroCounts[L] = Math.round((target[L] || 0) * e) });
+    updateStats(); mapDirty = true;
+    if (t >= 1) { heroCounts = Object.assign({}, target); replay = null; updateStats() }
+  }
+  function applyCounts(totals) {
+    if (replay || mode === "loading") { target = Object.assign({}, totals); return }
+    LETTERS.forEach(L => {
+      const n = totals[L] || 0, o = heroCounts[L] || 0;
+      if (n !== o) { heroCounts[L] = n; hero.setWear(L, wearOf(n), n > o ? "remote" : null) }
+    });
+    updateStats(); mapDirty = true;
   }
 
-  function scheduleWrite() {
-    dirty = true; clearTimeout(writeTimer);
-    writeTimer = setTimeout(flushWrite, 1500);
+  function press(L) {
+    if (replay) finishReplay();
+    heroCounts[L] = (heroCounts[L] || 0) + 1;
+    hero.setWear(L, wearOf(heroCounts[L]), "local");
+    hero.grains(L, 3); hero.jit[L] = performance.now() + 240;
+    if (mode === "shared" && uid) { mine[L] = (mine[L] || 0) + 1; scheduleWrite() }
+    else { local[L] = (local[L] || 0) + 1; saveLocal() }
+    updateStats(); mapDirty = true;
   }
+
+  function scheduleWrite() { dirtyWrite = true; clearTimeout(writeTimer); writeTimer = setTimeout(flushWrite, 1200) }
   async function flushWrite() {
-    if (writing || !dirty || !db || !uid) return;
-    writing = true; dirty = false;
+    if (writing || !dirtyWrite || !db || !uid) return;
+    writing = true; dirtyWrite = false;
     try { await db.collection("presses").doc(uid).set({ counts: clean(mine) }) }
-    catch (e) { $("status").textContent = "Your presses were kept here but not saved to the shared font." }
-    finally { writing = false; if (dirty) scheduleWrite() }
+    catch (e) { $("hint").textContent = "Your presses show here but did not reach the shared font" }
+    finally { writing = false; if (dirtyWrite) scheduleWrite() }
+  }
+
+  function goLocal(msg) {
+    if (mode !== "loading") return;
+    mode = "local"; startReplay(clean(local));
+    if (msg) $("hint").textContent = msg;
   }
 
   async function connectShared() {
-    if (!window.claude || typeof window.claude.use !== "function") return;
+    if (!window.claude || typeof window.claude.use !== "function") return false;
     try {
       const [d, u] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
-      if (!d) return;
+      if (!d) return false;
       db = d; uid = u ? await u.id() : null;
       let first = true;
-      const timer = setTimeout(() => { if (first) $("caseStatus").textContent = "The shared font is slow to load. Showing your case for now." }, 10000);
       db.collection("presses").onSnapshot(snap => {
-        clearTimeout(timer);
-        const tot = {}; let n = 0;
+        const others = {}; let n = 0, mineSeen = false;
         snap.docs.forEach(doc => {
-          const body = doc.data(); if (!body) return;
-          const c = clean(body.counts); if (!Object.keys(c).length) return;
+          const c = clean((doc.data() || {}).counts); if (!Object.keys(c).length) return;
           n++;
-          if (uid && doc.id === uid) { if (first || !dirty) mine = Object.assign({}, c) }
-          LETTERS.forEach(L => { if (c[L]) tot[L] = (tot[L] || 0) + c[L] });
+          if (uid && doc.id === uid) { mineSeen = true; if (first) mine = Object.assign({}, c); return }
+          LETTERS.forEach(L => { if (c[L]) others[L] = (others[L] || 0) + c[L] });
         });
-        // Keep my unsaved presses visible until the write lands.
-        if (dirty && uid) LETTERS.forEach(L => { const local = mine[L] || 0; const doc = snap.docs.find(x => x.id === uid); const saved = doc ? (clean((doc.data() || {}).counts)[L] || 0) : 0; if (local > saved) tot[L] = (tot[L] || 0) + local - saved });
-        shared = tot; people = n;
-        $("viewAll").disabled = false;
-        if (first && !viewTouched) setView("all");
-        first = false; renderAll();
-      }, () => { clearTimeout(timer); $("caseStatus").textContent = "The shared font could not load. Showing your case." });
-    } catch (e) { /* shared font unavailable: the page works on your case alone */ }
+        if (!mineSeen && Object.keys(mine).length) n++;
+        const tot = {}; LETTERS.forEach(L => { const v = (others[L] || 0) + (mine[L] || 0); if (v) tot[L] = v });
+        people = n;
+        if (first) {
+          first = false;
+          if (mode !== "loading") { LETTERS.forEach(L => hero.setWear(L, 0, null)); heroCounts = {} }
+          mode = "shared"; startReplay(tot);
+        } else applyCounts(tot);
+        updateStats();
+      }, () => goLocal("The shared font could not load. Your typing stays in this browser"));
+      return true;
+    } catch (e) { return false }
   }
 
+  // ---------- Wear map ----------
+  let selected = "e";
+  function buildMap() {
+    const kb = $("kb");
+    ROWS.forEach((row, ri) => row.split("").forEach((L, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "key"; b.dataset.l = L; b.setAttribute("aria-pressed", "false");
+      b.style.gridRow = String(ri + 1); b.style.gridColumn = `${[1, 2, 4][ri] + i * 2} / span 2`;
+      b.innerHTML = `<canvas aria-hidden="true"></canvas><span class="n"></span>`;
+      const pick = () => { selected = L; mapDirty = true };
+      b.addEventListener("click", pick); b.addEventListener("focus", pick);
+      b.addEventListener("pointerenter", e => { if (e.pointerType === "mouse") pick() });
+      kb.appendChild(b);
+    }));
+  }
+  function drawSingle(cv, name, wear, ghost) {
+    const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr) }
+    const c = cv.getContext("2d"); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const g = font.glyphs[name]; if (!g) return;
+    const scale = Math.min(h * 0.92 / font.upm, w * 0.8 / Math.max(1, g.a));
+    paintGlyph(c, dpr, name, (w - g.a * scale) / 2, h * 0.72, scale, wear, mix(C.ink, C.aged, Math.min(1, wear * 0.9)), false, ghost);
+  }
+  function renderMap() {
+    if (!font) return;
+    document.querySelectorAll(".key").forEach(b => {
+      const L = b.dataset.l, c = heroCounts[L] || 0;
+      drawSingle(b.querySelector("canvas"), font.cmap[L], hero.w[L] || 0, false);
+      b.querySelector(".n").textContent = c >= 10000 ? Math.round(c / 1000) + "k" : String(c);
+      b.setAttribute("aria-pressed", String(L === selected));
+      b.setAttribute("aria-label", `${L}: ${c} presses`);
+    });
+    const name = font.cmap[selected], ds = dotsFor(name), w = hero.w[selected] || 0;
+    const left = ds.filter(d => w < d.theta).length;
+    drawSingle($("detail"), name, w, $("ghost").checked);
+    $("dLetter").textContent = selected;
+    $("dDots").textContent = `${left} of ${ds.length} dots left`;
+    $("dPresses").textContent = `${fmt(heroCounts[selected] || 0)} presses`;
+    $("dPct").textContent = `${Math.round(w * 100)}% worn`;
+    const order = LETTERS.slice().sort((a, b) => (heroCounts[b] || 0) - (heroCounts[a] || 0) || a.localeCompare(b));
+    const total = LETTERS.reduce((s, L) => s + (heroCounts[L] || 0), 0);
+    const fresh = LETTERS.filter(L => !(heroCounts[L] > 0));
+    $("find").textContent = !total ? "Nothing has worn yet. Whatever gets typed first goes first."
+      : fresh.length >= 2 ? `${order[0]} is going first. ${fresh.slice(-2).join(" and ")} are still new.`
+      : `${order[0]} is going first. ${order[25]} has lasted best.`;
+  }
+
+  // ---------- Ten years ----------
+  let lang = "en", years = 10, playing = null;
+  function letterWearAt(L, y) { return wearOf(y * YEAR * (FREQ[lang][L] || 0) / 100) }
+  function setYears(y, animate) {
+    years = y;
+    LETTERS.forEach(L => sim.setWear(L, letterWearAt(L, y), animate ? "local" : null));
+    $("readout").textContent = `${y.toFixed(1)} years`;
+    const f = FREQ[lang], most = LETTERS.reduce((a, b) => f[b] > f[a] ? b : a), least = LETTERS.reduce((a, b) => f[b] < f[a] ? b : a);
+    const lost = L => dotsFor(font.cmap[L]).filter(d => letterWearAt(L, y) >= d.theta).length;
+    const n = dotsFor(font.cmap[most]).length, langName = lang === "en" ? "English" : "Dutch";
+    $("caption").textContent = y < 0.05 ? `Every letter new. Drag right to start typing in ${langName}.`
+      : `After ${y.toFixed(1)} years of ${langName}, ${most} has lost ${lost(most)} of its ${n} dots. ${least} has lost ${lost(least)}.`;
+  }
+  function drawSpark() {
+    const cv = $("spark"), w = cv.clientWidth, h = cv.clientHeight; if (!w || !font) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1); cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+    const raw = [];
+    for (let i = 0; i <= 80; i++) {
+      const t = i / 80, y = yearsAt(t); let gone = 0;
+      LETTERS.forEach(L => { const lw = letterWearAt(L, y); for (const d of dotsFor(font.cmap[L])) if (lw >= d.theta) gone++ });
+      raw.push([t * w, gone]);
+    }
+    const top = Math.max(1, raw[raw.length - 1][1]);   // the curve spans the range, from no dots lost to the 25-year loss
+    const pts = raw.map(p => [p[0], 8 + (h - 16) * (p[1] / top)]);
+    c.beginPath(); c.moveTo(0, 8); pts.forEach(p => c.lineTo(p[0], p[1])); c.lineTo(w, 8); c.closePath();
+    c.fillStyle = mix(C.aged, C.ground, 0.65); c.fill();
+    c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]));
+    c.strokeStyle = rgb(C.aged); c.lineWidth = 1.5; c.stroke();
+    c.fillStyle = rgb(C.rule); c.fillRect(0, 8, w, 1);
+  }
+  function buildTicks() {
+    const box = $("ticks"); box.innerHTML = "";
+    [0, 1, 5, 10, 25].forEach(y => { const s = document.createElement("span"); s.style.left = (tAt(y) * 100) + "%"; s.textContent = String(y); box.appendChild(s) });
+  }
+  function setLang(l) {
+    lang = l; $("langEn").setAttribute("aria-pressed", String(l === "en")); $("langNl").setAttribute("aria-pressed", String(l === "nl"));
+    sim.sweep(); sim.w = {}; sim.setText(PANGRAM[l]); setYears(years, false); drawSpark();
+  }
+
+  // ---------- Headings and lineage ----------
+  function drawHeadings() {
+    document.querySelectorAll("canvas.lh").forEach(cv => {
+      const w = cv.clientWidth; if (!w) return;
+      const size = Math.max(44, Math.min(112, window.innerWidth * 0.07));
+      const lines = wrapText(cv.dataset.text, size, w), lh = size * 1.12, h = Math.ceil(lines.length * lh + size * 0.3);
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+      const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
+      lines.forEach((line, i) => { let x = 0; const y = size * 0.9 + i * lh; for (const g of line) { if (g.glyph) paintGlyph(c, dpr, g.glyph, x, y, size / font.upm, 0, rgb(C.ink), false, false); x += g.adv } });
+    });
+    document.querySelectorAll(".lin canvas").forEach(cv => drawSingle(cv, font.cmap[cv.dataset.letter], Number(cv.dataset.wear), false));
+  }
+
+  function redrawAll() { readColors(); stages.forEach(s => s.resize()); drawHeadings(); drawSpark(); mapDirty = true }
+
+  // ---------- Loop ----------
+  let last = performance.now(); const t0 = performance.now();
+  function frame(now) {
+    const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
+    if (replay) stepReplay(now);
+    if (playing) {
+      const p = Math.min(1, (now - playing.t0) / 6000), y = 10 * p;
+      $("yr").value = String(Math.round(tAt(y) * 1000)); setYears(y, true);
+      if (p >= 1) { playing = null; $("play").textContent = "Play 10 years" }
+    }
+    for (const s of stages) {
+      if (s.parts.length) s.step(dt);
+      if (s.caret) { const on = Math.floor((now - t0) / 550) % 2 === 0; if (on !== s.showCaret) { s.showCaret = on; s.dirty = true } }
+      for (const k in s.jit) if (s.jit[k] > now) { s.dirty = true; break }
+      if (s.dirty) s.draw(now);
+    }
+    if (mapDirty) { mapDirty = false; renderMap() }
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- Input ----------
+  function wireInput() {
+    const ta = $("type"); let prev = ta.value, untouched = true;
+    const focus = () => { try { ta.focus({ preventScroll: true }) } catch (e) { ta.focus() } };
+    document.querySelector(".hero").addEventListener("click", e => { if (e.target.closest("a,button")) return; focus() });
+    ta.addEventListener("keydown", e => { if (e.key === "Enter") e.preventDefault() });
+    ta.addEventListener("input", () => {
+      const now = ta.value;
+      let i = 0; while (i < prev.length && i < now.length && prev[i] === now[i]) i++;
+      let j = 0; while (j < prev.length - i && j < now.length - i && prev[prev.length - 1 - j] === now[now.length - 1 - j]) j++;
+      const added = now.slice(i, now.length - j);
+      let text = now;
+      if (untouched) { untouched = false; text = added; ta.value = text; $("hint").textContent = "Every letter you type wears for everyone" }
+      prev = text;
+      for (const ch of added) { const k = keyOf(ch); if (LETTERS.includes(k)) press(k) }
+      hero.setText(text); $("live").textContent = text;
+    });
+    document.addEventListener("keydown", e => { if (replay && !e.metaKey && !e.ctrlKey) finishReplay() });
+    $("sweep").addEventListener("click", () => hero.sweep());
+    $("ghost").addEventListener("change", () => { mapDirty = true });
+    $("yr").addEventListener("input", e => { playing = null; $("play").textContent = "Play 10 years"; setYears(yearsAt(Number(e.target.value) / 1000), true) });
+    $("play").addEventListener("click", () => {
+      if (playing) { playing = null; $("play").textContent = "Play 10 years"; return }
+      sim.sweep(); sim.w = {}; setYears(0, false);
+      playing = { t0: performance.now() }; $("play").textContent = "Stop";
+    });
+    $("langEn").addEventListener("click", () => setLang("en"));
+    $("langNl").addEventListener("click", () => setLang("nl"));
+    // Redraw on width changes only, so a phone's address bar showing and hiding does not clear the pile.
+    let rt, lastW = window.innerWidth;
+    window.addEventListener("resize", () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(rt); rt = setTimeout(redrawAll, 150) });
+    if (window.matchMedia) { const mq = matchMedia("(prefers-color-scheme: dark)"); mq.addEventListener && mq.addEventListener("change", redrawAll) }
+    new MutationObserver(redrawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+
+  // ---------- Boot ----------
+  readColors(); buildMap(); buildTicks();
   fetch("lowie-poke.json").then(r => r.json()).then(data => {
     font = data; shape = makeShaper(font);
-    $("loading").hidden = true;
-    const stored = load();
-    if (stored) { counts = stored; $("status").textContent = "Your saved wear from last time." }
-    else {
-      counts = {}; LETTERS.forEach(L => { counts[L] = Math.round(FREQ.en[L] / 100 * YEAR) });
-      $("status").textContent = "Sample: one year of English typing. Reset your case to start clean.";
-    }
-    prevText = $("typed").value;
-    buildCase(); renderAll();
-    $("typed").addEventListener("input", onInput);
-    $("yearEn").addEventListener("click", () => addYear("en"));
-    $("yearNl").addEventListener("click", () => addYear("nl"));
-    $("reset").addEventListener("click", () => { counts = {}; save(); renderAll(); $("status").textContent = "Your case is new again. The shared font keeps its wear." });
-    $("viewAll").disabled = true;
-    $("viewAll").addEventListener("click", () => { if (!shared) return; viewTouched = true; setView("all") });
-    $("viewMe").addEventListener("click", () => { viewTouched = true; setView("me") });
-    setView("me");
-    connectShared();
-    let t; window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(renderAll, 120) });
-    if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", renderAll);
-    new MutationObserver(renderAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  }).catch(() => { $("loading").textContent = "Lowie did not load. Reload the page to try again." });
+    totalDots = LETTERS.reduce((n, L) => n + dotsFor(font.cmap[L]).length, 0);
+    hero.text = "Lowie"; sim.text = PANGRAM.en;
+    stages.forEach(s => s.resize());
+    setYears(10, false); drawHeadings(); drawSpark(); updateStats();
+    wireInput();
+    requestAnimationFrame(frame);
+    // Shared mode if the artifact runtime answers; this browser's own counts otherwise.
+    const quick = setTimeout(() => { if (!db) goLocal() }, 1800);
+    connectShared().then(ok => {
+      if (!ok) { clearTimeout(quick); goLocal(); return }
+      setTimeout(() => goLocal("The shared font is slow to load. Your typing stays in this browser for now"), 10000);
+    });
+  }).catch(() => { $("stats").textContent = "Lowie did not load. Reload the page to try again." });
 })();
 </script>
