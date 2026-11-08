@@ -69,7 +69,7 @@ button.primary { background: var(--ink); color: var(--paper); border-color: var(
 <div class="wrap">
   <header>
     <h1>Lowie Worn <span>· a typeface with memory</span></h1>
-    <span class="tag">Lowie Poke 0.3 · prototype</span>
+    <span class="tag">Lowie Poke 0.7 · prototype</span>
   </header>
   <p class="lede">Every letter is a sort. Each time anyone types it here, it wears a little: the hand-poked dots on its edges and joins go first, like a key worn smooth or a tattoo fading. Everyone who opens this page wears down the same font.</p>
 
@@ -147,9 +147,14 @@ button.primary { background: var(--ink); color: var(--paper); border-color: var(
     const g = font.glyphs[name]; const out = [];
     if (!g) { cache.set(name, out); return out }
     const raw = g.d.map(arr => {
-      let pts = [];
-      if (arr[0] === -1) for (let i = 1; i < arr.length; i += 3) pts.push([arr[i], arr[i + 1], arr[i + 2]]);
-      else for (let i = 0; i < arr.length; i += 2) pts.push([arr[i], arr[i + 1], 0]);
+      // Delta-encoded: x0, y0, on0, then (dx * 2 + on), dy per point (see export_wear.py).
+      const pts = [[arr[0], arr[1], arr[2]]];
+      let x = arr[0], y = arr[1];
+      for (let i = 3; i < arr.length; i += 2) {
+        const v = arr[i], on = ((v % 2) + 2) % 2;
+        x += (v - on) / 2; y += arr[i + 1];
+        pts.push([x, y, on]);
+      }
       let cx = 0, cy = 0; pts.forEach(p => { cx += p[0]; cy += p[1] }); cx /= pts.length; cy /= pts.length;
       return { pts, cx, cy };
     });
@@ -160,8 +165,11 @@ button.primary { background: var(--ink); color: var(--paper); border-color: var(
     raw.forEach((d, i) => {
       const edge = Math.hypot(d.cx - gx, d.cy - gy) / maxD;      // 0 centre, 1 outer edge
       const r = rand(base + i * 7919);
-      const theta = 0.12 + 0.95 * (0.55 * r + 0.45 * (1 - edge)); // exposed dots break sooner
-      out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, theta });
+      // Touching dots are merged into one large contour. Those blobs are the letter's core:
+      // they last longest and fade rather than shrink. Loose grains break first.
+      const big = d.pts.length > 40;
+      const theta = big ? 0.45 + 0.6 * r : 0.12 + 0.95 * (0.55 * r + 0.45 * (1 - edge));
+      out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, theta, big });
     });
     cache.set(name, out); return out;
   }
@@ -191,8 +199,9 @@ button.primary { background: var(--ink); color: var(--paper); border-color: var(
       if (s <= 0.02) continue;
       ctx.save();
       ctx.translate(x + d.cx * scale, y - d.cy * scale);
-      ctx.scale(scale * s, scale * s);
-      ctx.globalAlpha = 0.55 + 0.45 * s;
+      const k = d.big ? 1 : s;
+      ctx.scale(scale * k, scale * k);
+      ctx.globalAlpha = d.big ? s : 0.55 + 0.45 * s;
       ctx.fill(d.path);
       ctx.restore();
     }
