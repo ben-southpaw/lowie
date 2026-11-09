@@ -1,0 +1,14 @@
+{
+  "name": "lowie-worn",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+  "durable_objects": {
+    "bindings": [{ "name": "FONT", "class_name": "Font" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Font"] }],
+  "vars": {
+    // Pages allowed to write. Local test servers are listed for development only.
+    "ALLOWED_ORIGINS": "https://ben-southpaw.github.io,http://localhost:8788,http://127.0.0.1:8788"
+  }
+}

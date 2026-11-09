@@ -1,5 +1,6 @@
 <title>Lowie Worn</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="lowie-api" content="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap">
@@ -51,6 +52,12 @@ a { color: inherit }
 @media (max-width: 640px) { .floorlabs { top: calc(82% + 10px) } }
 .floorlabs .right { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline }
 .linkbtn { appearance: none; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px }
+.here::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--now); margin-right: 7px; vertical-align: 1px; animation: beat 1.6s ease-in-out infinite }
+@keyframes beat { 50% { opacity: .25 } }
+.banner { position: absolute; left: 0; right: 0; top: 40%; text-align: center; pointer-events: none; opacity: 0; transition: opacity .5s }
+.banner.on { opacity: 1 }
+.banner span { display: inline-block; background: var(--ground); padding: 10px 16px; border: 1px solid var(--now); border-radius: 999px; font: 500 13px/1.4 var(--ui); letter-spacing: .04em; color: var(--ink); max-width: calc(100% - 32px) }
+.linkbtn[aria-pressed="true"] { color: var(--ink) }
 #type { position: absolute; left: 16px; top: 40%; width: 1px; height: 1px; opacity: 0; font-size: 16px; resize: none; border: 0; padding: 0; caret-color: transparent; color: transparent; background: transparent }
 
 /* Sections */
@@ -70,6 +77,10 @@ canvas.lh { display: block; width: 100%; margin: 0 0 18px }
 .key .n { position: absolute; right: 6px; bottom: 4px; font: 400 10px var(--ui); font-variant-numeric: tabular-nums }
 @media (max-width: 640px) { .key .n { display: none } .kb { gap: 4px } .key { border-radius: 5px } }
 .key[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink) }
+.key.hit { animation: hit .45s ease-out }
+.key.hitR { animation: hitR .8s ease-out }
+@keyframes hit { 0% { transform: translateY(3px) scale(.96); border-color: var(--ink) } 100% { transform: none } }
+@keyframes hitR { 0% { transform: translateY(2px); border-color: var(--now); box-shadow: inset 0 0 0 2px var(--now) } 100% { transform: none } }
 .panel { display: grid; gap: 14px; min-width: 0 }
 .panel canvas { width: 100%; max-width: 100%; aspect-ratio: 1 / 1.05; background: var(--key); border: 1px solid var(--rule); border-radius: 10px }
 @media (max-width: 900px) { .panel { grid-template-columns: minmax(0, 160px) minmax(0, 1fr); align-items: center } .panel canvas { grid-row: span 3 } }
@@ -135,9 +146,10 @@ footer .links { display: flex; gap: 22px }
       <span class="lab" id="hint">Click anywhere and type</span>
     </div>
     <div class="floorlabs gut">
-      <span class="lab">Lowie · hand-poke serif · OFL</span>
-      <span class="right"><span class="lab" id="stats">Loading Lowie…</span><button class="lab linkbtn" id="sweep" type="button">Sweep</button></span>
+      <span class="lab" id="ed">Lowie · hand-poke serif · OFL</span>
+      <span class="right"><span class="lab" id="stats">Loading Lowie…</span><span class="lab here" id="here" hidden></span><button class="lab linkbtn" id="sound" type="button" aria-pressed="false">Sound</button><button class="lab linkbtn" id="sweep" type="button">Sweep</button></span>
     </div>
+    <div class="banner" id="banner" aria-live="polite"><span></span></div>
     <textarea id="type" maxlength="140" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type on Lowie">Lowie</textarea>
     <div class="sr" aria-live="polite" id="live"></div>
   </section>
@@ -270,7 +282,9 @@ footer .links { display: flex; gap: 22px }
     // Loose dots break off in rank order, so the first press of a letter always loses a few.
     const small = raw.filter(d => !d.big).sort((a, b) => a.score - b.score);
     small.forEach((d, i) => { d.theta = 1.1 * Math.pow((i + 0.5) / small.length, 1.8) });
-    raw.forEach(d => out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, r: d.r, theta: d.theta }));
+    // Poke order for the needle animation: roughly left to right, top to bottom, with a wobble.
+    raw.map((d, i) => [d, d.cx - d.cy * 0.35 + (rand(base + i * 104729) - 0.5) * 260]).sort((a, b) => a[1] - b[1]).forEach((p, i) => { p[0].order = i / raw.length });
+    raw.forEach(d => out.push({ path: toPath(d.pts, d.cx, d.cy), cx: d.cx, cy: d.cy, r: d.r, theta: d.theta, order: d.order }));
     cache.set(name, out); return out;
   }
   function toPath(pts, cx, cy) {
@@ -289,19 +303,34 @@ footer .links { display: flex; gap: 22px }
     p.closePath(); return p;
   }
 
-  function paintGlyph(ctx, dpr, name, x, y, scale, wear, fill, jitter, ghost) {
+  // fx (optional): { t, base, span } pokes dots in one by one, t ms into the animation;
+  // { px, py, pr, ps } pushes dots away from a pointer at (px, py), radius pr, strength ps px.
+  const POP = 150;
+  function paintGlyph(ctx, dpr, name, x, y, scale, wear, fill, jitter, ghost, fx) {
     const k = scale * dpr;
     if (ghost) {
       ctx.fillStyle = rgb(C.aged); ctx.globalAlpha = 0.16;
       for (const d of dotsFor(name)) { if (wear < d.theta) continue; ctx.setTransform(k, 0, 0, k, (x + d.cx * scale) * dpr, (y - d.cy * scale) * dpr); ctx.fill(d.path) }
     }
     ctx.fillStyle = fill;
+    const poke = fx && fx.t != null, push = fx && fx.ps > 0.05;
     for (const d of dotsFor(name)) {
       if (wear >= d.theta) continue;
+      let m = 1;
+      if (poke) {
+        const s = (fx.t - fx.base - d.order * fx.span) / POP;
+        if (s <= 0) continue;
+        if (s < 1) m = s + Math.sin(Math.PI * s) * 0.5;      // the needle overshoots, then the dot settles
+      }
       const loose = d.theta - wear < 0.06;
       ctx.globalAlpha = loose ? 0.6 : 1;
       let ox = 0, oy = 0; if (loose && jitter) { ox = (Math.random() - .5) * 2.4; oy = (Math.random() - .5) * 2.4 }
-      ctx.setTransform(k, 0, 0, k, (x + d.cx * scale + ox) * dpr, (y - d.cy * scale + oy) * dpr);
+      const X = x + d.cx * scale, Y = y - d.cy * scale;
+      if (push) {
+        const dx = X - fx.px, dy = Y - fx.py, dd = Math.hypot(dx, dy);
+        if (dd < fx.pr && dd > 0.01) { const f = Math.pow(1 - dd / fx.pr, 2) * fx.ps; ox += dx / dd * f; oy += dy / dd * f }
+      }
+      ctx.setTransform(k * m, 0, 0, k * m, (X + ox) * dpr, (Y + oy) * dpr);
       ctx.fill(d.path);
     }
     ctx.globalAlpha = 1; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -328,7 +357,15 @@ footer .links { display: flex; gap: 22px }
 
   // A stage: text standing on a floor, and the dots that fall off it.
   class Stage {
-    constructor(o) { Object.assign(this, o); this.ctx = this.cv.getContext("2d"); this.pctx = this.pv.getContext("2d"); this.parts = []; this.w = {}; this.jit = {}; this.glyphs = []; this.text = ""; this.dirty = true; this.showCaret = false }
+    constructor(o) { Object.assign(this, o); this.ctx = this.cv.getContext("2d"); this.pctx = this.pv.getContext("2d"); this.parts = []; this.w = {}; this.jit = {}; this.glyphs = []; this.text = ""; this.dirty = true; this.showCaret = false; this.poke = null; this.ptr = { x: 0, y: 0, tx: 0, ty: 0, s: 0, goal: 0, boost: 0 } }
+    startPoke() { if (reduce) return; this.poke = { t0: performance.now() }; this.dirty = true }
+    pokeLen() { return this.glyphs.length * 90 + 700 + POP }
+    // Glyphs typed just now are poked in, quickly; glyphs already on screen keep their state.
+    setTextTyped(t) {
+      const old = this.glyphs, now = performance.now(); this.text = t; this.layout();
+      this.glyphs.forEach((g, i) => { g.born = i < old.length && old[i].ch === g.ch ? old[i].born : (reduce ? 0 : now) });
+      this.dirty = true;
+    }
     resize() {
       const w = this.cv.clientWidth, h = this.cv.clientHeight; if (!w || !h) return;
       const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -408,6 +445,7 @@ footer .links { display: flex; gap: 22px }
       else { c.beginPath(); c.arc(p.x, p.y, p.r, 0, Math.PI * 2); c.fill() }
     }
     bake(p) {
+      sound.land(p.r);
       this.paintPart(this.pctx, p, rgb(C.aged));
       const a = Math.max(0, Math.floor((p.x - p.r) / 2)), b = Math.min(this.heights.length - 1, Math.ceil((p.x + p.r) / 2));
       const lim = this.floorY * 0.18;
@@ -421,11 +459,17 @@ footer .links { display: flex; gap: 22px }
       const c = this.ctx, dpr = this.dpr; if (!dpr) return;
       c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, this.cv.width, this.cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.fillStyle = rgb(C.rule); c.fillRect(0, Math.round(this.floorY), this.W, 1);
-      for (const g of this.glyphs) {
-        if (!g.glyph) continue;
+      const pt = this.ptr, fx = { t: null, base: 0, span: 0, px: pt.x, py: pt.y, pr: this.size * 0.42, ps: pt.s * this.size * 0.07 };
+      if (this.poke && now - this.poke.t0 > this.pokeLen()) this.poke = null;
+      let young = false;
+      this.glyphs.forEach((g, gi) => {
+        if (!g.glyph) return;
         const w = this.w[g.key] || 0;
-        paintGlyph(c, dpr, g.glyph, g.x, g.y, this.scale, w, mix(C.ink, C.aged, Math.min(1, w * 0.9)), (this.jit[g.key] || 0) > now, false);
-      }
+        if (this.poke) { fx.t = now - this.poke.t0; fx.base = gi * 90; fx.span = 700 }
+        else if (g.born && now - g.born < 260 + POP) { fx.t = now - g.born; fx.base = 0; fx.span = 260; young = true }
+        else fx.t = null;
+        paintGlyph(c, dpr, g.glyph, g.x, g.y, this.scale, w, mix(C.ink, C.aged, Math.min(1, w * 0.9)), (this.jit[g.key] || 0) > now, false, fx);
+      });
       for (const p of this.parts) {
         const age = (now - p.born) / (p.remote ? 600 : 900);
         this.paintPart(c, p, mix(p.remote ? C.now : C.ink, C.aged, Math.min(1, age)));
@@ -434,8 +478,46 @@ footer .links { display: flex; gap: 22px }
         const r = Math.max(2, this.size * 0.03); c.fillStyle = rgb(C.now);
         for (let i = 0; i < 3; i++) { c.beginPath(); c.arc(this.endX + r * 2.4, this.endY - r - i * r * 3.1, r, 0, Math.PI * 2); c.fill() }
       }
-      this.dirty = false;
+      this.dirty = !!this.poke || young;
     }
+  }
+
+  // A needle tick for each press, and a soft patter as dots land. Off until asked for.
+  const sound = {
+    ctx: null, on: false, noise: null, lastLand: 0, lastTick: 0,
+    toggle() {
+      try {
+        if (!this.ctx) {
+          const A = window.AudioContext || window.webkitAudioContext; if (!A) return;
+          this.ctx = new A();
+          const n = Math.round(this.ctx.sampleRate * 0.05), b = this.ctx.createBuffer(1, n, this.ctx.sampleRate), d = b.getChannelData(0);
+          for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 3);
+          this.noise = b;
+        }
+        this.on = !this.on; if (this.on) this.ctx.resume();
+      } catch (e) { this.on = false }
+      $("sound").setAttribute("aria-pressed", String(this.on)); $("sound").textContent = this.on ? "Sound on" : "Sound";
+      if (this.on) this.tick(false);
+    },
+    burst(freq, q, gain, len) {
+      const c = this.ctx, t = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = this.noise; f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
+      g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0008, t + len);
+      s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + len + 0.01);
+    },
+    tick(remote) {
+      if (!this.on) return; const now = performance.now(); if (now - this.lastTick < 28) return; this.lastTick = now;
+      try { this.burst(remote ? 2200 + Math.random() * 400 : 3400 + Math.random() * 900, 5, remote ? 0.12 : 0.4, 0.035) } catch (e) {}
+    },
+    land(r) {
+      if (!this.on) return; const now = performance.now(); if (now - this.lastLand < 45) return; this.lastLand = now;
+      try { this.burst(700 + Math.random() * 900, 1.5, Math.min(0.12, 0.03 + r * 0.008), 0.05) } catch (e) {}
+    },
+  };
+  function flashKey(L, remote) {
+    if (reduce) return;
+    const b = document.querySelector(`.key[data-l="${L}"]`); if (!b) return;
+    b.classList.remove("hit", "hitR"); void b.offsetWidth; b.classList.add(remote ? "hitR" : "hit");
   }
 
   const hero = new Stage({ cv: $("heroCv"), pv: $("heroPile"), floorFrac: 0.86, floorSmall: 0.82, maxLines: 3, minSize: 64, minSmall: 44, valign: 0.55, caret: true,
@@ -457,8 +539,15 @@ footer .links { display: flex; gap: 22px }
   function updateStats() {
     if (!font) return;
     const presses = LETTERS.reduce((s, L) => s + (heroCounts[L] || 0), 0);
-    const who = mode === "shared" ? `${people} ${people === 1 ? "typist" : "typists"}` : "this browser only";
+    const who = mode === "shared" ? `${fmt(people)} ${people === 1 ? "typist" : "typists"}` : "this browser only";
     $("stats").textContent = `${fmt(presses)} presses · ${fmt(dotsLost(hero.w))} of ${fmt(totalDots)} dots gone · ${who}`;
+    const h = $("here");
+    if (apiOn && mode === "shared" && here > 0) { h.hidden = false; h.textContent = here === 1 ? "Just you here" : `${fmt(here)} here now` } else h.hidden = true;
+    if (apiOn && mode === "shared" && edition && !resetting) {
+      const through = LETTERS.reduce((s, L) => s + Math.min(1, (heroCounts[L] || 0) / endCount), 0) / LETTERS.length;
+      $("ed").textContent = `Edition ${edition} · ${Math.floor(through * 100)}% worn through`;
+      $("ed").title = `An edition ends when every letter has had ${endCount} presses. Then the font starts fresh.`;
+    }
   }
 
   function startReplay(counts) {
@@ -478,20 +567,27 @@ footer .links { display: flex; gap: 22px }
     if (t >= 1) { heroCounts = Object.assign({}, target); replay = null; updateStats() }
   }
   function applyCounts(totals) {
+    if (resetting) return;
     if (replay || mode === "loading") { target = Object.assign({}, totals); return }
     LETTERS.forEach(L => {
       const n = totals[L] || 0, o = heroCounts[L] || 0;
-      if (n !== o) { heroCounts[L] = n; hero.setWear(L, wearOf(n), n > o ? "remote" : null) }
+      if (n !== o) {
+        heroCounts[L] = n; hero.setWear(L, wearOf(n), n > o ? "remote" : null);
+        if (n > o) { flashKey(L, true); sound.tick(true) }
+      }
     });
     updateStats(); mapDirty = true;
   }
 
   function press(L) {
     if (replay) finishReplay();
+    hero.poke = null;
     heroCounts[L] = (heroCounts[L] || 0) + 1;
     hero.setWear(L, wearOf(heroCounts[L]), "local");
     hero.grains(L, 3); hero.jit[L] = performance.now() + 240;
-    if (mode === "shared" && uid) { mine[L] = (mine[L] || 0) + 1; scheduleWrite() }
+    sound.tick(false); flashKey(L, false);
+    if (mode === "shared" && apiOn) { if (!resetting) pend += L }
+    else if (mode === "shared" && uid) { mine[L] = (mine[L] || 0) + 1; scheduleWrite() }
     else { local[L] = (local[L] || 0) + 1; saveLocal() }
     updateStats(); mapDirty = true;
   }
@@ -540,6 +636,122 @@ footer .links { display: flex; gap: 22px }
     } catch (e) { return false }
   }
 
+  // ---------- Public counter (the GitHub Pages copy) ----------
+  // One WebSocket to a Cloudflare Worker: we send our letters in small batches and hear everyone else's.
+  // If sockets fail, plain HTTP does the same with a poll.
+  const API = (() => {
+    let a = (document.querySelector('meta[name="lowie-api"]') || {}).content || "";
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { const q = new URLSearchParams(location.search).get("api"); if (q) a = q }
+    return /^https?:\/\/[^\s"']+$/.test(a) ? a.replace(/\/$/, "") : "";
+  })();
+  let apiOn = false, sock = null, server = {}, pend = "", inflight = new Map(), seq = 0, edition = 0, endCount = 240, here = 0, resetting = false, backoff = 1000, pollTimer = null;
+  const myId = (() => {
+    let v = null; try { v = localStorage.getItem("lowie-worn-id") } catch (e) {}
+    if (!v || !/^[a-z0-9]{8,40}$/.test(v)) {
+      v = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => (b % 36).toString(36)).join("");
+      try { localStorage.setItem("lowie-worn-id", v) } catch (e) {}
+    }
+    return v;
+  })();
+  function shown() {
+    const t = Object.assign({}, server), add = s => { for (const ch of s) t[ch] = (t[ch] || 0) + 1 };
+    add(pend); inflight.forEach(add); return t;
+  }
+  function takeServer(m) {
+    if (m.counts) server = clean(m.counts);
+    if (Number.isFinite(m.typists)) people = m.typists;
+    if (Number.isFinite(m.here)) here = m.here;
+    if (Number.isFinite(m.endCount) && m.endCount > 0) endCount = m.endCount;
+  }
+  function banner(text, ms) {
+    const b = $("banner"); b.querySelector("span").textContent = text; b.classList.add("on");
+    clearTimeout(banner.t); banner.t = setTimeout(() => b.classList.remove("on"), ms || 5000);
+  }
+  function arrive(m) {
+    // First state from the counter: show the shared font, crumbling from new to now.
+    takeServer(m); apiOn = true;
+    if (edition && m.edition !== edition) { newEdition(m); return }
+    edition = m.edition;
+    if (mode === "shared") { applyCounts(shown()); updateStats(); return }
+    if (mode !== "loading") { LETTERS.forEach(L => hero.setWear(L, 0, null)); heroCounts = {} }
+    mode = "shared"; startReplay(shown()); updateStats();
+  }
+  function newEdition(m) {
+    const ended = m.ended || edition, past = (m.past || []).find(p => p.edition === ended);
+    takeServer(m); edition = m.edition; pend = ""; inflight.clear();
+    resetting = true; if (replay) finishReplay();
+    LETTERS.forEach(L => hero.setWear(L, 1.2, "remote"));             // everything left falls at once
+    const days = past ? Math.round((past.ended - past.started) / 864e5) : 0;
+    const took = !past ? "" : ` after ${days < 1 ? "less than a day" : days === 1 ? "1 day" : fmt(days) + " days"} and ${fmt(past.typists)} ${past.typists === 1 ? "typist" : "typists"}`;
+    banner(`Edition ${ended} wore out${took}. Edition ${edition} is fresh.`, 7000);
+    $("ed").textContent = `Edition ${ended} · worn out`;
+    setTimeout(() => {
+      resetting = false; heroCounts = {};
+      LETTERS.forEach(L => hero.setWear(L, 0, null)); hero.startPoke();
+      applyCounts(shown()); updateStats(); mapDirty = true;
+    }, reduce ? 0 : 2600);
+  }
+  function onMessage(m) {
+    if (!m || typeof m !== "object") return;
+    if (m.t === "state") arrive(m);
+    else if (m.t === "edition") newEdition(m);
+    else if (m.t === "p" || m.t === "ack") {
+      if (m.t === "ack") inflight.delete(m.id);
+      if (Number.isFinite(m.edition) && edition && m.edition !== edition) return;   // an edition message is on its way
+      takeServer(m);
+      if (m.t === "ack" && m.capped) $("hint").textContent = "Daily limit reached for some letters. They still fall here, not for everyone";
+      applyCounts(shown()); updateStats();
+    } else if (m.t === "here") { here = m.here | 0; updateStats() }
+  }
+  function flush() {
+    if (!pend || resetting) return;
+    const id = ++seq, l = pend.slice(0, 140); pend = pend.slice(l.length);
+    if (sock && sock.readyState === 1) { inflight.set(id, l); sock.send(JSON.stringify({ t: "p", l, u: myId, id })); return }
+    if (pollTimer) {
+      inflight.set(id, l);
+      fetch(API + "/api/press", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ l, u: myId }) })
+        .then(r => r.json()).then(m => { inflight.delete(id); onMessage(Object.assign({ t: "ack", id }, m)) })
+        .catch(() => { inflight.delete(id); pend = l + pend });
+      return;
+    }
+    pend = l + pend;   // no connection right now: keep the letters for when it comes back
+  }
+  function openSocket() {
+    return new Promise(resolve => {
+      let ws, opened = false;
+      try { ws = new WebSocket(API.replace(/^http/, "ws") + "/api/ws") } catch (e) { resolve(false); return }
+      const fail = setTimeout(() => { if (!opened) { try { ws.close() } catch (e) {} resolve(false) } }, 6000);
+      ws.onmessage = e => {
+        let m = null; try { m = JSON.parse(e.data) } catch (x) { return }
+        if (!opened && m && m.t === "state") { opened = true; clearTimeout(fail); backoff = 1000; sock = ws; resolve(true) }
+        onMessage(m);
+      };
+      ws.onclose = () => {
+        clearTimeout(fail);
+        if (sock === ws) sock = null;
+        inflight.forEach(l => { pend = l + pend }); inflight.clear();
+        if (!opened) { resolve(false); return }
+        reconnect();
+      };
+    });
+  }
+  // Keep trying after a dropped connection, backing off to 30 s between tries.
+  function reconnect() {
+    setTimeout(async () => { if (!(await openSocket())) reconnect() }, backoff);
+    backoff = Math.min(30000, backoff * 2);
+  }
+  async function poll() {
+    try { const m = await (await fetch(API + "/api/state", { cache: "no-store" })).json(); onMessage(Object.assign({ t: "state" }, m)); return true }
+    catch (e) { return false }
+  }
+  async function connectApi() {
+    if (await openSocket()) return true;
+    if (!(await poll())) return false;
+    pollTimer = setInterval(poll, 8000);
+    return true;
+  }
+  setInterval(flush, 400);
+
   // ---------- Wear map ----------
   let selected = "e";
   function buildMap() {
@@ -555,14 +767,14 @@ footer .links { display: flex; gap: 22px }
       kb.appendChild(b);
     }));
   }
-  function drawSingle(cv, name, wear, ghost) {
+  function drawSingle(cv, name, wear, ghost, fx) {
     const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr) }
     const c = cv.getContext("2d"); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, cv.width, cv.height); c.setTransform(dpr, 0, 0, dpr, 0, 0);
     const g = font.glyphs[name]; if (!g) return;
     const scale = Math.min(h * 0.92 / font.upm, w * 0.8 / Math.max(1, g.a));
-    paintGlyph(c, dpr, name, (w - g.a * scale) / 2, h * 0.72, scale, wear, mix(C.ink, C.aged, Math.min(1, wear * 0.9)), false, ghost);
+    paintGlyph(c, dpr, name, (w - g.a * scale) / 2, h * 0.72, scale, wear, mix(C.ink, C.aged, Math.min(1, wear * 0.9)), false, ghost, fx);
   }
   function renderMap() {
     if (!font) return;
@@ -629,18 +841,47 @@ footer .links { display: flex; gap: 22px }
   }
 
   // ---------- Headings and lineage ----------
-  function drawHeadings() {
-    document.querySelectorAll("canvas.lh").forEach(cv => {
-      const w = cv.clientWidth; if (!w) return;
-      const size = Math.max(44, Math.min(112, window.innerWidth * 0.07));
-      const lines = wrapText(cv.dataset.text, size, w), lh = size * 1.12, h = Math.ceil(lines.length * lh + size * 0.3);
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      cv.style.height = h + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-      const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
-      lines.forEach((line, i) => { let x = 0; const y = size * 0.9 + i * lh; for (const g of line) { if (g.glyph) paintGlyph(c, dpr, g.glyph, x, y, size / font.upm, 0, rgb(C.ink), false, false); x += g.adv } });
+  // Headings are poked in when they scroll into view. Lineage letters are poked in new, then age to their wear.
+  const heads = [];
+  function drawHead(h, now) {
+    const cv = h.cv, t = h.t0 == null ? -1 : now - h.t0;
+    if (h.kind === "lin") {
+      const target = Number(cv.dataset.wear), pokeEnd = 700 + POP, a = Math.max(0, Math.min(1, (t - pokeEnd - 250) / 1100));
+      const wear = t < 0 ? 0 : target * (1 - Math.pow(1 - a, 3));
+      drawSingle(cv, font.cmap[cv.dataset.letter], wear, false, t < 0 ? { t: -1, base: 0, span: 700 } : t < pokeEnd ? { t, base: 0, span: 700 } : null);
+      return t >= pokeEnd + 1400;
+    }
+    const w = cv.clientWidth; if (!w) return true;
+    const size = Math.max(44, Math.min(112, window.innerWidth * 0.07));
+    const lines = wrapText(cv.dataset.text, size, w), lh = size * 1.12, hh = Math.ceil(lines.length * lh + size * 0.3);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hh * dpr)) { cv.style.height = hh + "px"; cv.width = Math.round(w * dpr); cv.height = Math.round(hh * dpr) }
+    const c = cv.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, hh);
+    let gi = 0;
+    lines.forEach((line, i) => {
+      let x = 0; const y = size * 0.9 + i * lh;
+      for (const g of line) { if (g.glyph) paintGlyph(c, dpr, g.glyph, x, y, size / font.upm, 0, rgb(C.ink), false, false, t >= 0 && t < 2000 ? { t, base: gi * 55, span: 420 } : t < 0 ? { t: -1, base: 0, span: 1 } : null); x += g.adv; gi++ }
     });
-    document.querySelectorAll(".lin canvas").forEach(cv => drawSingle(cv, font.cmap[cv.dataset.letter], Number(cv.dataset.wear), false));
+    return t >= gi * 55 + 420 + POP;
   }
+  function drawHeadings() {
+    if (!heads.length) {
+      document.querySelectorAll("canvas.lh").forEach(cv => heads.push({ cv, kind: "h", t0: null, done: false }));
+      document.querySelectorAll(".lin canvas").forEach(cv => heads.push({ cv, kind: "lin", t0: null, done: false }));
+      const now = performance.now();
+      if (reduce || !("IntersectionObserver" in window)) heads.forEach(h => { h.t0 = now - 1e5 });
+      else {
+        const io = new IntersectionObserver(es => es.forEach(e => {
+          if (!e.isIntersecting) return; const h = heads.find(x => x.cv === e.target);
+          if (h && h.t0 == null) { h.t0 = performance.now(); h.done = false } io.unobserve(e.target);
+        }), { threshold: 0.35 });
+        heads.forEach(h => io.observe(h.cv));
+      }
+    }
+    const now = performance.now();
+    heads.forEach(h => { h.done = drawHead(h, now) && h.t0 != null });
+  }
+  function stepHeads(now) { for (const h of heads) if (h.t0 != null && !h.done) h.done = drawHead(h, now) }
 
   function redrawAll() { readColors(); stages.forEach(s => s.resize()); drawHeadings(); drawSpark(); mapDirty = true }
 
@@ -648,7 +889,15 @@ footer .links { display: flex; gap: 22px }
   let last = performance.now(); const t0 = performance.now();
   function frame(now) {
     const dt = Math.min(1 / 30, (now - last) / 1000); last = now;
-    if (replay) stepReplay(now);
+    if (replay) { if (hero.poke) replay.t0 = now; else stepReplay(now) }   // poke the font in first, then wear it
+    const pt = hero.ptr;
+    if (pt.s > 0.002 || pt.goal > 0) {
+      pt.boost *= 0.9; const goal = Math.min(1, pt.goal + pt.boost);
+      pt.s += (goal - pt.s) * 0.14; pt.x += (pt.tx - pt.x) * 0.25; pt.y += (pt.ty - pt.y) * 0.25;
+      if (pt.s < 0.002 && !pt.goal) pt.s = 0;
+      hero.dirty = true;
+    }
+    stepHeads(now);
     if (playing) {
       const p = Math.min(1, (now - playing.t0) / 6000), y = 10 * p;
       $("yr").value = String(Math.round(tAt(y) * 1000)); setYears(y, true);
@@ -679,8 +928,21 @@ footer .links { display: flex; gap: 22px }
       if (untouched) { untouched = false; text = added; ta.value = text; $("hint").textContent = "Every letter you type wears for everyone" }
       prev = text;
       for (const ch of added) { const k = keyOf(ch); if (LETTERS.includes(k)) press(k) }
-      hero.setText(text); $("live").textContent = text;
+      hero.setTextTyped(text); $("live").textContent = text;
     });
+    // Dots part around the pointer, more when it moves fast. Looks only: it never wears anything.
+    if (!reduce) {
+      const heroEl = document.querySelector(".hero"), pt = hero.ptr; let lx = 0, ly = 0, lt = 0;
+      heroEl.addEventListener("pointermove", e => {
+        const r = hero.cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, t = performance.now();
+        if (!pt.goal) { pt.x = x; pt.y = y }
+        pt.tx = x; pt.ty = y; pt.goal = e.pointerType === "mouse" ? 0.35 : 0;
+        if (lt) { const v = Math.hypot(x - lx, y - ly) / Math.max(8, t - lt); pt.boost = Math.min(0.9, pt.boost + v * 0.08) }
+        lx = x; ly = y; lt = t;
+      });
+      heroEl.addEventListener("pointerleave", () => { pt.goal = 0; lt = 0 });
+    }
+    $("sound").addEventListener("click", () => sound.toggle());
     document.addEventListener("keydown", e => { if (replay && !e.metaKey && !e.ctrlKey) finishReplay() });
     $("sweep").addEventListener("click", () => hero.sweep());
     $("ghost").addEventListener("change", () => { mapDirty = true });
@@ -706,15 +968,23 @@ footer .links { display: flex; gap: 22px }
     totalDots = LETTERS.reduce((n, L) => n + dotsFor(font.cmap[L]).length, 0);
     hero.text = "Lowie"; sim.text = PANGRAM.en;
     stages.forEach(s => s.resize());
+    hero.startPoke();
     setYears(10, false); drawHeadings(); drawSpark(); updateStats();
     wireInput();
     requestAnimationFrame(frame);
-    // Shared mode if the artifact runtime answers; this browser's own counts otherwise.
-    const quick = setTimeout(() => { if (!db) goLocal() }, 1800);
-    connectShared().then(ok => {
-      if (!ok) { clearTimeout(quick); goLocal(); return }
-      setTimeout(() => goLocal("The shared font is slow to load. Your typing stays in this browser for now"), 10000);
-    });
+    // Shared mode through the artifact runtime inside claude.ai, through the public counter elsewhere,
+    // and this browser's own counts when neither answers.
+    const slow = "The shared font is slow to load. Your typing stays in this browser for now";
+    if (window.claude && typeof window.claude.use === "function") {
+      const quick = setTimeout(() => { if (!db) goLocal() }, 1800);
+      connectShared().then(ok => {
+        if (!ok) { clearTimeout(quick); goLocal(); return }
+        setTimeout(() => goLocal(slow), 10000);
+      });
+    } else if (API) {
+      const t = setTimeout(() => goLocal(slow), 8000);
+      connectApi().then(ok => { if (!ok) { clearTimeout(t); goLocal("The shared font could not load. Your typing stays in this browser") } });
+    } else goLocal();
   }).catch(() => { $("stats").textContent = "Lowie did not load. Reload the page to try again." });
 })();
 </script>

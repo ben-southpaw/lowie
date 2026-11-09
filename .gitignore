@@ -13,3 +13,8 @@ release/site/*.zip
 __pycache__/
 *.pyc
 .venv/
+
+# Built by worn/build-site.sh in the Pages workflow
+release/site/worn/
+.wrangler/
+node_modules/
