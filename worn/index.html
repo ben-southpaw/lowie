@@ -1,6 +1,6 @@
 <title>Lowie Worn</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="lowie-api" content="">
+<meta name="lowie-api" content="https://lowie-worn.ben-dryden.workers.dev">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Martian+Mono:wght@400;500&display=swap">
@@ -540,7 +540,7 @@ footer .links { display: flex; gap: 22px }
     if (!font) return;
     const presses = LETTERS.reduce((s, L) => s + (heroCounts[L] || 0), 0);
     const who = mode === "shared" ? `${fmt(people)} ${people === 1 ? "typist" : "typists"}` : "this browser only";
-    $("stats").textContent = `${fmt(presses)} presses · ${fmt(dotsLost(hero.w))} of ${fmt(totalDots)} dots gone · ${who}`;
+    $("stats").textContent = `${fmt(presses)} ${presses === 1 ? "press" : "presses"} · ${fmt(dotsLost(hero.w))} of ${fmt(totalDots)} dots gone · ${who}`;
     const h = $("here");
     if (apiOn && mode === "shared" && here > 0) { h.hidden = false; h.textContent = here === 1 ? "Just you here" : `${fmt(here)} here now` } else h.hidden = true;
     if (apiOn && mode === "shared" && edition && !resetting) {

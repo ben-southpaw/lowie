@@ -17,7 +17,7 @@ const num = (v, d) => { const n = Number(v); return Number.isFinite(n) && n > 0 
 function limits(env) {
   const endWear = Math.min(0.95, Number(env.END_WEAR) || 0.8);
   return {
-    endCount: num(env.END_COUNT, Math.ceil(endWear * H / (1 - endWear))),  // 240 presses at 80% worn
+    endCount: num(env.END_COUNT, Math.round(endWear * H / (1 - endWear))),  // 240 presses at 80% worn
     perLetterDay: num(env.PER_LETTER_DAY, 40),
     perDay: num(env.PER_DAY, 600),
   };
