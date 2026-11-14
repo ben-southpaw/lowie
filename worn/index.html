@@ -66,6 +66,16 @@ canvas.lh { display: block; width: 100%; margin: 0 0 18px }
 .lede { margin: 0 0 36px; max-width: 60ch; color: var(--muted) }
 .find { margin: 0 0 28px; font-weight: 500 }
 
+/* Visitors */
+.crowd { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 0 32px }
+.crowd li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; align-items: center; padding-block: 14px; border-top: 1px solid var(--rule); min-width: 0 }
+.crowd canvas, .crowd .none { width: 44px; height: 48px; display: block }
+.crowd .none { border: 1px dashed var(--rule); border-radius: 7px; box-sizing: border-box }
+.crowd .who { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-weight: 500 }
+.crowd .you { color: var(--now) }
+.crowd .lab { display: block }
+.crowd .here { display: inline }
+
 /* Wear map */
 .map { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 40px; align-items: start }
 @media (max-width: 900px) { .map { grid-template-columns: minmax(0, 1fr) } }
@@ -127,6 +137,7 @@ footer .links { display: flex; gap: 22px }
 <header class="bar gut">
   <a class="brand" href="#top">Lowie Worn</a>
   <nav class="lab" aria-label="Sections">
+    <a href="#crowd" id="navCrowd" hidden>Visitors</a>
     <a href="#map">Wear map</a>
     <a href="#years">Ten years</a>
     <a href="#lineage">Lineage</a>
@@ -150,6 +161,16 @@ footer .links { display: flex; gap: 22px }
     <div class="banner" id="banner" aria-live="polite"><span></span></div>
     <textarea id="type" maxlength="140" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Type on Lowie">Lowie</textarea>
     <div class="sr" aria-live="polite" id="live"></div>
+  </section>
+
+  <section class="sec gut" id="crowd" aria-labelledby="crowdH" hidden>
+    <div class="wrap">
+      <h2 class="sr" id="crowdH">Who wore it</h2>
+      <canvas class="lh" data-text="Who wore it" aria-hidden="true"></canvas>
+      <p class="lede">Everyone who has opened this page, latest first, and what they did to the font. Nobody signs in: a visitor is a random number kept in their own browser, so the list never shows a name or what anyone wrote.</p>
+      <p class="find" id="crowdSum"></p>
+      <ol class="crowd" id="crowdList"></ol>
+    </div>
   </section>
 
   <section class="sec gut" id="map" aria-labelledby="mapH">
@@ -619,14 +640,14 @@ footer .links { display: flex; gap: 22px }
   }
   function finishReplay() {
     LETTERS.forEach(L => hero.setWear(L, wearOf(target[L] || 0), null));
-    heroCounts = Object.assign({}, target); replay = null; updateStats(); mapDirty = true;
+    heroCounts = Object.assign({}, target); replay = null; updateStats(); mapDirty = true; renderCrowd();
   }
   function stepReplay(now) {
     const t = Math.min(1, (now - replay.t0) / 2400), e = t * t;
     LETTERS.forEach(L => hero.setWear(L, wearOf(target[L] || 0) * e, "local"));
     LETTERS.forEach(L => { heroCounts[L] = Math.round((target[L] || 0) * e) });
     updateStats(); mapDirty = true;
-    if (t >= 1) { heroCounts = Object.assign({}, target); replay = null; updateStats() }
+    if (t >= 1) { heroCounts = Object.assign({}, target); replay = null; updateStats(); renderCrowd() }
   }
   function applyCounts(totals) {
     if (resetting) return;
@@ -706,6 +727,7 @@ footer .links { display: flex; gap: 22px }
     if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) { const q = new URLSearchParams(location.search).get("api"); if (q) a = q }
     return /^https?:\/\/[^\s"']+$/.test(a) ? a.replace(/\/$/, "") : "";
   })();
+  let crowd = null, youN = null;
   let apiOn = false, sock = null, server = {}, pend = "", inflight = new Map(), seq = 0, edition = 0, endCount = 240, here = 0, resetting = false, backoff = 1000, pollTimer = null;
   const myId = (() => {
     let v = null; try { v = localStorage.getItem("lowie-worn-id") } catch (e) {}
@@ -724,7 +746,45 @@ footer .links { display: flex; gap: 22px }
     if (Number.isFinite(m.typists)) people = m.typists;
     if (Number.isFinite(m.here)) here = m.here;
     if (Number.isFinite(m.endCount) && m.endCount > 0) endCount = m.endCount;
+    if (Number.isFinite(m.you) && m.you > 0) youN = m.you;
+    if (Array.isArray(m.visitors)) { crowd = { list: m.visitors.slice(0, 40), seen: m.seen | 0, typedBy: m.typedBy | 0 }; renderCrowd() }
   }
+  // ---------- Visitors ----------
+  const regions = (() => { try { return new Intl.DisplayNames(["en"], { type: "region" }) } catch (e) { return null } })();
+  function ago(ms) {
+    const s = Math.max(0, (Date.now() - ms) / 1000);
+    if (s < 60) return "just now";
+    if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+    if (s < 86400) { const h = Math.floor(s / 3600); return `${h} ${h === 1 ? "hour" : "hours"} ago` }
+    const d = Math.floor(s / 86400); if (d < 30) return d === 1 ? "yesterday" : `${d} days ago`;
+    return new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  }
+  function renderCrowd() {
+    if (!font || !crowd || !crowd.seen) return;
+    $("crowd").hidden = false; $("navCrowd").hidden = false;
+    const looked = Math.max(0, crowd.seen - crowd.typedBy);
+    $("crowdSum").textContent = `${fmt(crowd.seen)} ${crowd.seen === 1 ? "visitor" : "visitors"}. ${fmt(crowd.typedBy)} typed, ${fmt(looked)} only looked.`;
+    const ol = $("crowdList"); ol.textContent = "";
+    for (const v of crowd.list) {
+      const n = v.n | 0; if (!n) continue;
+      const top = typeof v.top === "string" && /^[a-z]$/.test(v.top) ? v.top : "", presses = Math.max(0, v.presses | 0);
+      const cc = typeof v.cc === "string" && /^[A-Z]{2}$/.test(v.cc) ? v.cc : "";
+      const li = document.createElement("li");
+      let mark;
+      if (top) { mark = document.createElement("canvas"); mark.setAttribute("aria-hidden", "true") } else { mark = document.createElement("span"); mark.className = "none" }
+      const body = document.createElement("div"), who = document.createElement("span"), what = document.createElement("span");
+      who.className = "who"; what.className = "lab";
+      const name = document.createElement("span"); name.textContent = `Visitor ${fmt(n)}`; who.appendChild(name);
+      if (cc) { const c = document.createElement("span"); c.className = "lab"; c.style.display = "inline"; c.textContent = (regions && regions.of(cc)) || cc; who.appendChild(c) }
+      if (n === youN) { const y = document.createElement("span"); y.className = "lab you"; y.style.display = "inline"; y.textContent = "You"; who.appendChild(y) }
+      if (v.here) { const h = document.createElement("span"); h.className = "lab here"; h.textContent = "Here now"; who.appendChild(h) }
+      const did = presses ? `Typed ${fmt(presses)} ${presses === 1 ? "letter" : "letters"}${top ? `, mostly ${top}` : ""}` : "Looked, didn't type";
+      what.textContent = v.here ? did : `${did} · ${ago(Number(v.last) || 0)}`;
+      body.append(who, what); li.append(mark, body); ol.appendChild(li);
+      if (top) drawSingle(mark, font.cmap[top], hero.w[top] || 0, false);
+    }
+  }
+  setInterval(renderCrowd, 30000);
   function banner(text, ms) {
     const b = $("banner"); b.querySelector("span").textContent = text; b.classList.add("on");
     clearTimeout(banner.t); banner.t = setTimeout(() => b.classList.remove("on"), ms || 5000);
@@ -763,7 +823,7 @@ footer .links { display: flex; gap: 22px }
       takeServer(m);
       if (m.t === "ack" && m.capped) $("hint").textContent = "Daily limit reached for some letters. They still fall here, not for everyone";
       applyCounts(shown()); updateStats();
-    } else if (m.t === "here") { here = m.here | 0; updateStats() }
+    } else if (m.t === "here") { takeServer(m); updateStats() }
   }
   function flush() {
     if (!pend || resetting) return;
@@ -781,7 +841,7 @@ footer .links { display: flex; gap: 22px }
   function openSocket() {
     return new Promise(resolve => {
       let ws, opened = false;
-      try { ws = new WebSocket(API.replace(/^http/, "ws") + "/api/ws") } catch (e) { resolve(false); return }
+      try { ws = new WebSocket(API.replace(/^http/, "ws") + "/api/ws?u=" + myId) } catch (e) { resolve(false); return }
       const fail = setTimeout(() => { if (!opened) { try { ws.close() } catch (e) {} resolve(false) } }, 6000);
       ws.onmessage = e => {
         let m = null; try { m = JSON.parse(e.data) } catch (x) { return }

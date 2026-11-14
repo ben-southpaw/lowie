@@ -4,6 +4,7 @@ A Cloudflare Worker with one Durable Object that holds the shared font: how many
 
 - **Editions.** An edition ends when every letter has had 240 presses (80% worn). The counts are archived and the font starts fresh.
 - **Limits.** One visitor can add 40 presses per letter and 600 in all per day. A visitor is a salted hash of their IP and the date; raw IPs are never stored and old hashes are deleted daily.
+- **Visitors.** Each browser keeps a random id. The page lists the last 40 visitors with a number, country, when, and how many letters they typed. Ids, IPs and typed text never leave the server. One IP can add 8 new visitors a day.
 - **Origins.** Anyone can read `/api/state`. Writing needs a page listed in `ALLOWED_ORIGINS` in `wrangler.jsonc`.
 
 ## Run locally
