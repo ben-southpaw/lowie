@@ -604,7 +604,7 @@ footer .links { display: flex; gap: 22px }
   }
 
   const hero = new Stage({ cv: $("heroCv"), pv: $("heroPile"), floorFrac: 0.86, floorSmall: 0.82, maxLines: 3, minSize: 64, minSmall: 44, valign: 0.55, caret: true,
-    top: w => w < 640 ? 150 : 170, sizeFor: (w, avail) => Math.min(w * (w < 640 ? 0.33 : 0.26), avail * 0.9) });
+    top: w => w < 640 ? 150 : 170, sizeFor: (w, avail) => Math.min(w * (w < 640 ? 0.25 : 0.15), 240, avail * 0.7) });
   const sim = new Stage({ cv: $("simCv"), pv: $("simPile"), floorFrac: 0.86, floorSmall: 0.86, maxLines: 3, minSize: 30, minSmall: 22, valign: 0.5, caret: false,
     top: () => 20, sizeFor: (w, avail) => Math.min(w * 0.095, avail * 0.6) });
   const stages = [hero, sim];
