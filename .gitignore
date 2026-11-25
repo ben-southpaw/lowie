@@ -18,3 +18,6 @@ __pycache__/
 release/site/worn/
 .wrangler/
 node_modules/
+
+# Launch kit: drafts and images for posting (private)
+/launch/

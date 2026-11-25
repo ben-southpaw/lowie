@@ -6,7 +6,7 @@ Free and open source under the [SIL Open Font License 1.1](../release/OFL.txt): 
 
 ![Lowie demos](../release/images/demos-sheet.png)
 
-**[Download Lowie 0.7](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/)**
+**[Download Lowie 0.7](https://github.com/ben-southpaw/lowie/releases/latest)** · **[Try it in your browser](https://ben-southpaw.github.io/lowie/) · [Lowie Worn](https://ben-southpaw.github.io/lowie/worn/): one shared copy that wears down as people type**
 
 ## Styles
 
