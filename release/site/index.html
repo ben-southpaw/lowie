@@ -4,104 +4,125 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lowie</title>
-<meta name="description" content="Lowie: a free, connected serif drawn as hand-poke tattoo dots.">
+<meta name="description" content="Lowie: a free, connected serif drawn as hand-poke tattoo dots, tattooed onto seven old masters.">
+<meta property="og:title" content="Lowie">
+<meta property="og:description" content="A free, connected serif drawn as hand-poke tattoo dots.">
+<link rel="preload" as="image" href="img/odalisque.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&display=swap">
 <style>
 @font-face { font-family: "Lowie Poke"; src: url("fonts/Lowie-Poke.woff2") format("woff2"); font-display: swap; }
-@font-face { font-family: "Lowie Poke Shaded"; src: url("fonts/Lowie-PokeShaded.woff2") format("woff2"); font-display: swap; }
-@font-face { font-family: "Lowie Poke Line"; src: url("fonts/Lowie-PokeLine.woff2") format("woff2"); font-display: swap; }
-:root { --paper: #f8f6f1; --ink: #161514; --muted: #6d675e; --red: #161514; --line: #dedad2; color-scheme: light; }
-* { box-sizing: border-box; }
-body { font-synthesis: none; margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, sans-serif; }
-main { max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
-header { padding: 48px 0 24px; border-bottom: 1px solid var(--line); }
-.hero { font-family: "Lowie Poke"; font-weight: 400; font-size: clamp(96px, 22vw, 260px); line-height: 1; margin: 0; }
-.tag { font-size: 20px; max-width: 34em; margin: 12px 0 0; }
-.tag a { color: var(--red); }
-.cta { display: inline-block; margin-top: 20px; padding: 12px 20px; background: var(--ink); color: var(--paper); border-radius: 6px; text-decoration: none; font-weight: 600; }
-section { padding: 40px 0; border-bottom: 1px solid var(--line); }
-h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 16px; font-weight: 600; }
-.controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 20px; }
-.controls button { font: inherit; padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); cursor: pointer; }
-.controls button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.controls label { display: flex; gap: 8px; align-items: center; color: var(--muted); }
-#tester { width: 100%; min-height: 1.4em; font-size: 120px; line-height: 1.15; border: 0; outline: 0; background: transparent; color: var(--ink); font-family: "Lowie Poke"; overflow-wrap: anywhere; }
-#tester:focus-visible { outline: 2px solid var(--red); outline-offset: 6px; }
-.lo #tester, .lo .pair-b { font-feature-settings: "ss01" 1; }
-.styles div { font-size: 64px; line-height: 1.2; margin: 0 0 8px; overflow-wrap: anywhere; }
-.styles small { display: block; font-size: 13px; color: var(--muted); font-family: ui-sans-serif, system-ui, sans-serif; }
-.pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.pairs div { font-family: "Lowie Poke"; font-size: 56px; line-height: 1.2; overflow-wrap: anywhere; }
-.pair-b { font-feature-settings: "ss01" 1; }
-.glyphs { font-family: "Lowie Poke"; font-size: 44px; line-height: 1.5; word-break: break-all; letter-spacing: .08em; }
-img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
-footer { padding: 32px 0; color: var(--muted); font-size: 14px; }
-footer a { color: inherit; }
-@media (max-width: 640px) { #tester { font-size: 64px; } .pairs { grid-template-columns: 1fr; } .styles div { font-size: 44px; } }
+:root { --paper: #f8f6f1; --ink: #161514; --muted: #6d675e; color-scheme: light; }
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: var(--paper); color: var(--ink); font: 14px/1.4 "Instrument Sans", ui-sans-serif, system-ui, sans-serif; font-synthesis: none; }
+
+/* Without JS the strip scrolls natively; with JS it is driven by the smooth scroll below. */
+.view { position: fixed; inset: 0; overflow-x: auto; overflow-y: hidden; }
+.js, .js body, .js .view { overflow: clip; }
+.strip { display: flex; height: 100vh; height: 100dvh; width: max-content; will-change: transform; }
+.panel { position: relative; flex: 0 0 auto; height: 100%; overflow: clip; }
+
+/* opener */
+.open { width: 100vw; background: #1b1d22; }
+.open img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 100%; }
+
+/* chapters: tall 4:5, or a wide 3:2 spread */
+.img { width: 80vh; width: 80dvh; }
+.img.wide { width: 150vh; width: 150dvh; }
+.img img { position: absolute; top: 0; left: -6%; width: 112%; height: 100%; object-fit: cover; will-change: transform; }
+
+/* end */
+.end { width: 100vw; min-width: 0; display: flex; flex-direction: column; padding: 14vh 5vw 0; gap: 3vh; }
+.tester { display: flex; align-items: center; font-size: 26vh; line-height: 1; min-width: 0; cursor: text; }
+.lw { font-family: "Lowie Poke"; font-weight: 400; line-height: 1; outline: none; caret-color: transparent; min-width: .3em; white-space: nowrap; }
+.caret { width: .05em; height: .82em; background: var(--ink); margin-left: .04em; animation: blink 1.05s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.links { font-size: 15px; }
+.links a { color: var(--ink); }
+.credits { list-style: none; padding: 0; margin-top: auto; margin-bottom: 7vh; columns: 2; column-gap: 3vw; font-size: 12px; color: var(--muted); max-width: 920px; }
+.credits b { color: var(--ink); font-weight: 500; }
+.progress { position: fixed; left: 0; bottom: 0; height: 2px; background: var(--ink); width: 0; z-index: 6; }
+@media (max-width: 640px) { .credits { columns: 1; } .end { padding-top: 10vh; } }
+@media (prefers-reduced-motion: reduce) { .caret { animation: none; } }
 </style>
+<script>document.documentElement.classList.add("js")</script>
 </head>
 <body>
-<main>
-<header>
-  <h1 class="hero">Lowie</h1>
-  <p class="tag">A connected serif drawn as hand-poke tattoo dots. Every letter joins the next. Free and open source under the <a href="https://openfontlicense.org">SIL Open Font License</a>.</p>
-  <a class="cta" href="https://github.com/ben-southpaw/lowie/releases/latest">Download Lowie 0.7</a>
-</header>
-
-<section>
-  <h2>Type to try it</h2>
-  <div class="controls" role="group" aria-label="Style">
-    <button type="button" data-f="Lowie Poke" aria-pressed="true">Poke</button>
-    <button type="button" data-f="Lowie Poke Shaded" aria-pressed="false">Poke Shaded</button>
-    <button type="button" data-f="Lowie Poke Line" aria-pressed="false">Poke Line</button>
-    <label>Size <input type="range" id="size" min="32" max="220" value="120"></label>
-    <label><input type="checkbox" id="lo"> All low joins (ss01)</label>
-  </div>
-  <div id="tester" contenteditable="true" spellcheck="false" role="textbox" aria-label="Type to test Lowie">koffie &amp; kefir</div>
-</section>
-
-<section class="styles">
-  <h2>Three styles</h2>
-  <div style="font-family:'Lowie Poke'">hold fast<small>Poke: loose dots, mixed sizes</small></div>
-  <div style="font-family:'Lowie Poke Shaded'">slow rivers<small>Poke Shaded: dotted edge, sparse dots inside</small></div>
-  <div style="font-family:'Lowie Poke Line'">borrowed light<small>Poke Line: the outline only</small></div>
-</section>
-
-<section>
-  <h2>Joins</h2>
-  <p>Joins happen by themselves. b, o, r, v and w hand over along the top, as in handwriting. Stylistic set 1 makes every letter join from the foot.</p>
-  <div class="pairs">
-    <div>brown woven<small style="display:block;font:13px ui-sans-serif,system-ui;color:var(--muted)">default</small></div>
-    <div class="pair-b">brown woven<small style="display:block;font:13px ui-sans-serif,system-ui;color:var(--muted)">all low joins (ss01)</small></div>
-  </div>
-</section>
-
-<section>
-  <h2>Lowie Worn</h2>
-  <p>One shared copy of Lowie that wears down as people type. Every key press knocks dots off that letter for everyone. <a href="worn/">Type on it</a>.</p>
-</section>
-
-<section>
-  <h2>In use</h2>
-  <img src="demos-sheet.png" alt="Lowie on a flash day poster, a kefir label, a zine cover, a tattoo flash sheet, a specimen card and its own wordmark" loading="lazy">
-</section>
-
-<section>
-  <h2>Characters</h2>
-  <div class="glyphs">ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 àáâäãåçèéêëìíîïñòóôöõùúûüýÿ ÀÁÂÄÃÅÇÈÉÊËÌÍÎÏÑÒÓÔÖÕÙÚÛÜÝ .,:;!?¡¿'"‘’“”()[]/\|-–—_ &amp;@#%£€$+−=×&lt;&gt;*…°^~·</div>
-</section>
-
-<footer>
-  Lowie 0.7 · Copyright 2026 Ben Dryden · <a href="OFL.txt">SIL Open Font License 1.1</a> · Display sizes, 30px and above.
-</footer>
-</main>
+<h1 hidden>Lowie</h1>
+<div class="view"><main class="strip" id="s">
+  <section class="panel open"><img src="img/odalisque.jpg" alt="Lowie tattooed on the lower back of Ingres' Grande Odalisque"></section>
+  <section class="panel img"><img src="img/milkmaid.jpg" alt="Metallica tattooed on the forearm of Vermeer's Milkmaid" loading="lazy"></section>
+  <section class="panel img wide"><img src="img/socrates.jpg" alt="no regrets tattooed on the chest of David's Socrates" loading="lazy"></section>
+  <section class="panel img"><img src="img/bride.jpg" alt="LOVE tattooed on the back of a hand in Rembrandt's Jewish Bride" loading="lazy"></section>
+  <section class="panel img wide"><img src="img/musicians.jpg" alt="anarchy tattooed on the upper back of a boy in Caravaggio's Musicians" loading="lazy"></section>
+  <section class="panel img"><img src="img/adam.jpg" alt="thug life tattooed across Adam's stomach in Cornelis van Haarlem's Fall of Man" loading="lazy"></section>
+  <section class="panel img"><img src="img/pearl.jpg" alt="sorry and two teardrops tattooed on the cheek of Vermeer's Girl with a Pearl Earring" loading="lazy"></section>
+  <section class="panel end">
+    <div class="tester"><span class="lw" id="type" contenteditable spellcheck="false" autocapitalize="off" role="textbox" aria-label="Type to try Lowie">So it goes…</span><span class="caret" aria-hidden="true"></span></div>
+    <p class="links"><a href="https://github.com/ben-southpaw/lowie/releases/latest">Download Lowie, free (OFL)</a> · <a href="specimen/">Specimen</a> · <a href="worn/">Lowie Worn</a></p>
+    <ol class="credits">
+      <li><b>La Grande Odalisque</b>, Jean-Auguste-Dominique Ingres, 1814. Louvre, Paris</li>
+      <li><b>The Milkmaid</b>, Johannes Vermeer, c. 1660. Rijksmuseum, Amsterdam</li>
+      <li><b>The Death of Socrates</b>, Jacques-Louis David, 1787. The Met, New York</li>
+      <li><b>The Jewish Bride</b>, Rembrandt van Rijn, c. 1665. Rijksmuseum, Amsterdam</li>
+      <li><b>The Musicians</b>, Caravaggio, 1597. The Met, New York</li>
+      <li><b>The Fall of Man</b>, Cornelis van Haarlem, 1592. Rijksmuseum, Amsterdam</li>
+      <li><b>Girl with a Pearl Earring</b>, Johannes Vermeer, c. 1665. Mauritshuis, The Hague</li>
+      <li>Paintings in the public domain. Lowie 0.7 © 2026 Ben Dryden, <a href="OFL.txt" style="color:inherit">SIL Open Font License 1.1</a>.</li>
+    </ol>
+  </section>
+</main></div>
+<div class="progress" id="p"></div>
 <script>
-const tester = document.getElementById('tester');
-document.querySelectorAll('[data-f]').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('[data-f]').forEach(x => x.setAttribute('aria-pressed', x === b));
-  tester.style.fontFamily = `"${b.dataset.f}"`;
-}));
-document.getElementById('size').addEventListener('input', e => tester.style.fontSize = e.target.value + 'px');
-document.getElementById('lo').addEventListener('change', e => document.body.classList.toggle('lo', e.target.checked));
+/* ---------- smooth horizontal scroll ---------- */
+const s = document.getElementById("s"), bar = document.getElementById("p");
+const ease = matchMedia("(prefers-reduced-motion: reduce)").matches ? 0.35 : 0.085;
+let target = 0, cur = 0, max = 0;
+const measure = () => { const e = s.lastElementChild; max = Math.max(0, e.offsetLeft + e.offsetWidth - innerWidth); target = Math.min(target, max); };
+addEventListener("resize", measure); addEventListener("load", measure); measure();
+const imgs = [...s.querySelectorAll(".img img")];
+const clampT = v => Math.max(0, Math.min(max, v));
+addEventListener("wheel", e => { target = clampT(target + e.deltaY + e.deltaX); e.preventDefault(); }, { passive: false });
+addEventListener("keydown", e => {
+  if (document.activeElement.isContentEditable) return;
+  const step = { ArrowRight: 200, ArrowDown: 200, ArrowLeft: -200, ArrowUp: -200, PageDown: innerWidth, PageUp: -innerWidth, " ": innerWidth, Home: -1e9, End: 1e9 }[e.key];
+  if (step) { target = clampT(target + step); e.preventDefault(); }
+});
+let tx = null;
+addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive: true });
+addEventListener("touchmove", e => { const x = e.touches[0].clientX; target = clampT(target + (tx - x) * 1.4); tx = x; }, { passive: true });
+addEventListener("focusin", e => {             // keyboard focus on a link at the end brings it into view
+  const p = e.target.closest(".panel"); if (p) target = clampT(p.offsetLeft + p.offsetWidth - innerWidth);
+});
+
+/* ---------- tester ---------- */
+const typ = document.getElementById("type"), tester = document.querySelector(".tester");
+let armed = false;
+tester.addEventListener("click", focusEnd);
+function fitTester() {                         // largest size up to 26vh that keeps the line inside the panel
+  const room = tester.parentElement.clientWidth * 0.9;
+  tester.style.fontSize = "";
+  const full = parseFloat(getComputedStyle(tester).fontSize), w = typ.scrollWidth * 1.1;
+  tester.style.fontSize = (w > room ? full * room / w : full) + "px";
+}
+typ.addEventListener("input", fitTester); addEventListener("resize", fitTester);
+document.fonts.ready.then(fitTester); fitTester();
+function focusEnd() { typ.focus({ preventScroll: true }); const r = document.createRange(); r.selectNodeContents(typ); r.collapse(false); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); }
+
+/* ---------- frame loop ---------- */
+(function tick() {
+  if (!armed && max && cur > max - innerWidth * 0.3) { armed = true; if (matchMedia("(hover: hover)").matches) focusEnd(); }
+  cur += (target - cur) * ease;
+  if (Math.abs(target - cur) < 0.05) cur = target;
+  s.style.transform = `translate3d(${-cur}px,0,0)`;
+  for (const im of imgs) {                     // slight parallax inside each frame
+    const r = im.parentElement.getBoundingClientRect();
+    if (r.right < 0 || r.left > innerWidth) continue;
+    im.style.transform = `translate3d(${(r.left + r.width / 2 - innerWidth / 2) / innerWidth * -4}%,0,0)`;
+  }
+  bar.style.width = (max ? cur / max * 100 : 0) + "%";
+  requestAnimationFrame(tick);
+})();
 </script>
 </body>
 </html>
