@@ -6,9 +6,12 @@ def axis_s(pts, x):
     pts = np.asarray(pts, float)
     seg = np.r_[0, np.cumsum(np.hypot(*np.diff(pts, axis=0).T))]
     return np.interp(x, pts[:, 0], seg)
-if word == "thug life":     # across the belly, arched, Tupac style
-    R0 = 1700; pts = [(1530 + R0 * np.sin(t), 2600 + R0 * (1 - np.cos(t))) for t in np.linspace(-0.27, 0.27, 9)]
-    H = 200
+if word.lower() == "thug life":     # across the belly, arched, Tupac style
+    # lowercase: a shallow arch. Caps copy Tupac's: a rounder arch, set lower on the belly. Same arc length either way.
+    R0, Y0 = (1700, 2600) if word.islower() else (950, 2665)
+    T = 0.27 * 1700 / R0
+    pts = [(1530 + R0 * np.sin(t), Y0 + R0 * (1 - np.cos(t))) for t in np.linspace(-T, T, 11)]
+    H = 200 if word.islower() else int(sys.argv[2]) if len(sys.argv) > 2 else 150
 else:                       # across the chest, above the nipples
     pts = [(1150, 2250), (1530, 2210), (1910, 2250)]
     H = 175
