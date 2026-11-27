@@ -22,6 +22,8 @@ isolated / initial / medial / final forms so words join and word edges stay clea
 import math
 import unicodedata
 import random
+from fontTools.ttLib import newTable
+from fontTools.ttLib.tables import ttProgram
 from pathlib import Path
 
 import pathops
@@ -1889,18 +1891,32 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.7"
+VERSION = "0.7.1"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
+WIN_ASCENT, WIN_DESCENT = 940, 300
+_maj, _min, _patch = (VERSION + ".0").split(".")[:3]
+REVISION = f"{_maj}.{int(_min) * 100 + int(_patch):03d}"   # 0.7 -> 0.700, 0.7.1 -> 0.701
 LICENSE = ("This Font Software is licensed under the SIL Open Font License, Version 1.1. "
            "This license is available with a FAQ at: https://openfontlicense.org")
+
+
+def notdef_box():
+    """The missing-character box: an outlined rectangle, so absent characters show instead of vanishing."""
+    pen = TTGlyphPen(None)
+    for pts in (((50, 0), (450, 0), (450, 700), (50, 700)), ((100, 50), (100, 650), (400, 650), (400, 50))):
+        pen.moveTo(pts[0])
+        for pt in pts[1:]:
+            pen.lineTo(pt)
+        pen.closePath()
+    return pen.glyph()
 
 
 def build(name, release=False):
     P.clear()
     P.update(DEFAULTS, **VARIANTS[name])
     RNG.seed(1)
-    glyphs, metrics = {".notdef": TTGlyphPen(None).glyph(), "space": TTGlyphPen(None).glyph()}, {}
+    glyphs, metrics = {".notdef": notdef_box(), "space": TTGlyphPen(None).glyph()}, {}
     metrics[".notdef"], metrics["space"] = (500, 0), (260, 0)
     order = [".notdef", "space"]
     # Stylistic set 1 swaps each high-exit letter for a copy that exits low.
@@ -1930,7 +1946,7 @@ def build(name, release=False):
     fb = FontBuilder(UPM, isTTF=True)
     fb.setupGlyphOrder(order)
     cmap = {ord(CHARS.get(c, c)): c for c in list(LOWER) + list(CAPS)}
-    cmap[32] = "space"
+    cmap[32] = cmap[0xA0] = "space"          # no-break space shares the space glyph
     cmap.update({ord(ch): gname for gname, ch in OTHER.items()})
     fb.setupCharacterMap(cmap)
     fb.setupGlyf(glyphs)
@@ -1940,12 +1956,24 @@ def build(name, release=False):
     fb.setupNameTable({"familyName": family, "styleName": "Regular",
                        "typographicFamily": fam, "typographicSubfamily": name,
                        "fullName": family, "psName": ps, "uniqueFontIdentifier": ps + "-" + VERSION,
-                       "version": "Version " + VERSION + "00", "copyright": COPYRIGHT,
+                       "version": "Version " + REVISION, "copyright": COPYRIGHT,
                        "designer": "Ben Dryden", "licenseDescription": LICENSE,
-                       "licenseInfoURL": "https://openfontlicense.org"})
-    fb.setupOS2(sTypoAscender=900, sTypoDescender=-250, usWinAscent=900, usWinDescent=250,
-                sxHeight=P["xh"], sCapHeight=CAP, fsType=0)
+                       "licenseInfoURL": "https://openfontlicense.org"}, mac=False)
+    # Windows clips anything outside usWinAscent/usWinDescent, so they cover every glyph in
+    # every style (0.7: yMax 899, yMin -266), with room for the dots' jitter. Same in all styles.
+    # USE_TYPO_METRICS keeps line spacing on the typo values (900/-250), as on the Mac.
+    fb.setupOS2(sTypoAscender=900, sTypoDescender=-250, sTypoLineGap=0,
+                usWinAscent=WIN_ASCENT, usWinDescent=WIN_DESCENT,
+                sxHeight=P["xh"], sCapHeight=CAP, fsType=0, fsSelection=0x40 | 0x80, version=4)
+    fb.font["OS/2"].recalcCodePageRanges(fb.font)
+    fb.font["OS/2"].recalcUnicodeRanges(fb.font)
+    fb.updateHead(fontRevision=float(REVISION))  # matches "Version 0.701" in the name table
     fb.setupPost()
+    # Smart dropout control, so dots thinner than a pixel still render at small sizes on Windows.
+    prep = newTable("prep")
+    prep.program = ttProgram.Program()
+    prep.program.fromBytecode(bytes.fromhex("b801ff85b0048d"))
+    fb.font["prep"] = prep
 
     def cls(suffix, names=letters):
         return " ".join(c + suffix for c in names)

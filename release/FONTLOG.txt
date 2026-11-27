@@ -36,6 +36,13 @@ and skia-pathops.
 Changelog
 ---------
 
+0.7.1 (2026-11-27)
+- No change to any letter, dot or join. Fixes found by Fontbakery:
+  a box for missing characters, a no-break space, Windows line metrics
+  that no longer clip the lowest dots, code page and Unicode ranges,
+  smart dropout so small dots render on Windows, and matching version
+  numbers in the head and name tables. Old Mac name entries removed.
+
 0.7 (2026-11-07)
 - Poke Shaded and Poke Line redrawn with the same loose dots and
   skeleton as Poke, so the three styles match.
