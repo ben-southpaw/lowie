@@ -22,6 +22,7 @@ isolated / initial / medial / final forms so words join and word edges stay clea
 import math
 import unicodedata
 import random
+import kern
 from fontTools.ttLib import newTable
 from fontTools.ttLib.tables import ttProgram
 from pathlib import Path
@@ -1891,7 +1892,7 @@ def draw(fn, entry, exit_, kind="low"):
     return pen.glyph(dropImpliedOnCurves=True), adv
 
 
-VERSION = "0.7.1"
+VERSION = "0.8"
 RELEASE = ["Poke", "Poke Shaded", "Poke Line"]
 COPYRIGHT = "Copyright 2026 Ben Dryden"
 WIN_ASCENT, WIN_DESCENT = 940, 300
@@ -2013,6 +2014,14 @@ def build(name, release=False):
         }} EntryForms;
     }} calt;
     """
+    # Kerning, only between glyphs that never join (see kern.py).
+    lower = set(letters)
+    base = lambda n: n.split(".")[0] + (".lo" if ".lo" in n else "")
+    lefts = list(CAPS) + [c + s for c in letters for s in ("", ".fina", ".finah")] + list(OTHER)
+    rights = [c + s for c in CAPS for s in ("", ".init")] + [c + s for c in letters for s in ("", ".init")] + list(OTHER)
+    skip = lambda l, r: base(r) in lower and (base(l) in lower or l in CAPS)
+    pairs = kern.kerning(glyphs, {n: m[0] for n, m in metrics.items()}, lefts, rights, skip)
+    fea += kern.feature(pairs)
     addOpenTypeFeaturesFromString(fb.font, fea)
     out = (OUT.parent / "release" / "fonts") if release else OUT
     out.mkdir(parents=True, exist_ok=True)

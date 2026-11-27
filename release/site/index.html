@@ -7,7 +7,8 @@
 <meta name="description" content="Lowie: a free, connected serif drawn as hand-poke tattoo dots, tattooed onto seven old masters.">
 <meta property="og:title" content="Lowie">
 <meta property="og:description" content="A free, connected serif drawn as hand-poke tattoo dots.">
-<link rel="preload" as="image" href="img/odalisque.jpg">
+<link rel="preload" as="image" href="img/odalisque.webp" type="image/webp" fetchpriority="high">
+<link rel="preload" as="image" href="img/pearl.webp" type="image/webp">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&display=swap">
 <style>
@@ -31,6 +32,18 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font: 14
 .img.wide { width: 150vh; width: 150dvh; }
 .img img { position: absolute; top: 0; left: -6%; width: 112%; height: 100%; object-fit: cover; will-change: transform; }
 
+/* blurred placeholders, so a panel is never blank while its image loads */
+.open::before, .img::before { content: ""; position: absolute; inset: -40px; background: var(--ph) center / cover no-repeat; filter: blur(24px); z-index: 0; }
+.open img, .img img { z-index: 1; }
+.open::before { background-position: 40% 100%; }
+.ph-odalisque { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAPABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCto+mRf8fBTCMPkU/xYP3jU2t6NJfEyQXDPKgyIW6Y9jVu3id5TcbQNq7AMkcegHSpjDbXMkckisWQ5UhiKhv3rmkUnGxwksMsEmyWNkYdmGKK768Xy4d33gP743UVXtCeQ//Z"); }
+.ph-pearl { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAeABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDp57hEVSTwelU5zFdxFSM/0qO8UCaC3UnaihaqayZo/s5s22hAd4/vHtiuc6DF1WCWKcfvC2BhSeuPQ0VPfQzuvmTqOnrRWyqu2pi6avoW/t6yXqyFvlL4NbLhFBJUZ+lY4ngmuTL5Cguc9M1cmnJizjtWBvsZurXG75FPBoqvcDzZCT2oqiT/2Q=="); }
+.ph-milkmaid { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAeABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCnb6rHNqttCoYfOFwB/L86mumlFomDghQOawEaSC7Lwhy6tlXA5z61sWzapfIIRagqFxvkGwD8aipRdlJDhNJ2INMlWF5J5ZEGGH3gccfpRTtST7DEIZI4pQF5eJs89+eooqHTT3G5Mz5b68t5mRpWDd8Nn+VNOr3ZXaZjitrUdCtI9qW4cSlQmS2F3Dqce9cy6849DitqajNegqjlFkst3NIpDOdvoKKrnjNFaWSM7tn/2Q=="); }
+.ph-socrates { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDn7WynuX2xoAP7zHCj8a0L+0vVtra2Yb1X+5nC9qzVV3CoCxGeF69fQV0t7Lm1RWRkbau5iPu461zzbujaNtTH1C1js7c24mWWVZecDGOP/wBVFLqMiNqrhIy4Yh3ZeSBgZAFFNSsLluf/2Q=="); }
+.ph-bride { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAeABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDj+GPFbehaejEyyjt8nsazFsLiKRt0RIHcc+9bdrBcfZCwAPZVZsZ9/pXPUlpZHRTjrqW/skEWflBPUk9M/Sis6bzEjwzqffrRWKi2b8yWhQjuZMnaCSRzVxNYJHEJLfnWVG5785q1BCUkPIwRkVtJJGMG27I1IZIpADNnnoCOn+fxoqjLD8mQSPoaKz0ZtyyR/9k="); }
+.ph-musicians { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAQABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDl7G3je7kEuJY40LZBPNIkBZwhBEkh+Rxk4FNaQQSRvH8xHLA9CPQ1r2hjjjk1DyI4/lypU55PGMVl5mzSRnG1uLVXWT5yDxg8/rRV6/uIEmdvMUmUfLjniij1JP/Z"); }
+.ph-adam { --ph: url("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wAARCAAeABgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDEsNIu72MyoojizgMe/wBB3rauLRrHThb2iySzE7i2MHiprbUVk1FLS22rDHGcZ6HGABWk+VdizLjZ68da527myRxUttPDGJZkK7icEnP4Girdzcy3lxcREKFwSqgdSKKa8yShAXtNSRgeUkAbHpnBrrr4xCzk2nqhGK5sRrLrKRd3uBn6A5rfvR52pQx5IDNkjsQOookETmQBBq8O7ciNgHPoe9FT+J/+QmB6Liina6C9mf/Z"); }
+
 /* end */
 .end { width: 100vw; min-width: 0; display: flex; flex-direction: column; padding: 14vh 5vw 0; gap: 3vh; }
 .tester { display: flex; align-items: center; font-size: 26vh; line-height: 1; min-width: 0; cursor: text; }
@@ -50,13 +63,13 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font: 14
 <body>
 <h1 hidden>Lowie</h1>
 <div class="view"><main class="strip" id="s">
-  <section class="panel open"><img src="img/odalisque.jpg" alt="Lowie tattooed on the lower back of Ingres' Grande Odalisque"></section>
-  <section class="panel img"><img src="img/pearl.jpg" alt="sorry and two teardrops tattooed on the cheek of Vermeer's Girl with a Pearl Earring" loading="lazy"></section>
-  <section class="panel img"><img src="img/milkmaid.jpg" alt="Motörhead tattooed on the forearm of Vermeer's Milkmaid" loading="lazy"></section>
-  <section class="panel img wide"><img src="img/socrates.jpg" alt="no regrets tattooed on the chest of David's Socrates" loading="lazy"></section>
-  <section class="panel img"><img src="img/bride.jpg" alt="LOVE tattooed on the back of a hand in Rembrandt's Jewish Bride" loading="lazy"></section>
-  <section class="panel img wide"><img src="img/musicians.jpg" alt="anarchy tattooed on the upper back of a boy in Caravaggio's Musicians" loading="lazy"></section>
-  <section class="panel img"><img src="img/adam.jpg" alt="THUG LIFE tattooed across Adam's stomach in Cornelis van Haarlem's Fall of Man" loading="lazy"></section>
+  <section class="panel open ph-odalisque"><picture><source srcset="img/odalisque.webp" type="image/webp"><img src="img/odalisque.jpg" alt="Lowie tattooed on the lower back of Ingres' Grande Odalisque" fetchpriority="high"></picture></section>
+  <section class="panel ph-pearl img"><picture><source srcset="img/pearl.webp" type="image/webp"><img src="img/pearl.jpg" alt="sorry and two teardrops tattooed on the cheek of Vermeer's Girl with a Pearl Earring" fetchpriority="high"></picture></section>
+  <section class="panel ph-milkmaid img"><picture><source srcset="img/milkmaid.webp" type="image/webp"><img src="img/milkmaid.jpg" alt="Motörhead tattooed on the forearm of Vermeer's Milkmaid"></picture></section>
+  <section class="panel ph-socrates img wide"><picture><source srcset="img/socrates.webp" type="image/webp"><img src="img/socrates.jpg" alt="no regrets tattooed on the chest of David's Socrates"></picture></section>
+  <section class="panel ph-bride img"><picture><source srcset="img/bride.webp" type="image/webp"><img src="img/bride.jpg" alt="LOVE tattooed on the back of a hand in Rembrandt's Jewish Bride"></picture></section>
+  <section class="panel ph-musicians img wide"><picture><source srcset="img/musicians.webp" type="image/webp"><img src="img/musicians.jpg" alt="anarchy tattooed on the upper back of a boy in Caravaggio's Musicians"></picture></section>
+  <section class="panel ph-adam img"><picture><source srcset="img/adam.webp" type="image/webp"><img src="img/adam.jpg" alt="THUG LIFE tattooed across Adam's stomach in Cornelis van Haarlem's Fall of Man"></picture></section>
   <section class="panel end">
     <div class="tester"><span class="lw" id="type" contenteditable spellcheck="false" autocapitalize="off" role="textbox" aria-label="Type to try Lowie">So it goes…</span><span class="caret" aria-hidden="true"></span></div>
     <p class="links"><a href="https://github.com/ben-southpaw/lowie/releases/latest">Download Lowie, free (OFL)</a> · <a href="specimen/">Specimen</a> · <a href="worn/">Lowie Worn</a></p>
@@ -68,7 +81,7 @@ html, body { height: 100%; background: var(--paper); color: var(--ink); font: 14
       <li><b>The Jewish Bride</b>, Rembrandt van Rijn, c. 1665. Rijksmuseum, Amsterdam</li>
       <li><b>The Musicians</b>, Caravaggio, 1597. The Met, New York</li>
       <li><b>The Fall of Man</b>, Cornelis van Haarlem, 1592. Rijksmuseum, Amsterdam</li>
-      <li>Paintings in the public domain. Lowie 0.7.1 © 2026 Ben Dryden, <a href="OFL.txt" style="color:inherit">SIL Open Font License 1.1</a>.</li>
+      <li>Paintings in the public domain. Lowie 0.8 © 2026 Ben Dryden, <a href="OFL.txt" style="color:inherit">SIL Open Font License 1.1</a>.</li>
     </ol>
   </section>
 </main></div>
@@ -94,6 +107,9 @@ addEventListener("touchmove", e => { const x = e.touches[0].clientX; target = cl
 addEventListener("focusin", e => {             // keyboard focus on a link at the end brings it into view
   const p = e.target.closest(".panel"); if (p) target = clampT(p.offsetLeft + p.offsetWidth - innerWidth);
 });
+
+/* decode every painting once loaded, so none decodes mid-scroll */
+addEventListener("load", () => { for (const im of document.querySelectorAll("picture img")) im.decode?.().catch(() => {}); });
 
 /* ---------- tester ---------- */
 const typ = document.getElementById("type"), tester = document.querySelector(".tester");
